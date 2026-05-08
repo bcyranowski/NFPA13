@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>💧 NFPA 13 — Kurs Projektowania Tryskaczy</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f4f8; color: #1a202c; min-height: 100vh; }
+
+  .app { display: flex; height: 100vh; overflow: hidden; }
+
+  .sidebar { width: 220px; background: #fff; border-right: 1px solid #e2e8f0; display: flex; flex-direction: column; flex-shrink: 0; }
+  .logo { padding: 18px 16px 14px; border-bottom: 1px solid #e2e8f0; }
+  .logo h1 { font-size: 15px; font-weight: 700; color: #1a56db; letter-spacing: -0.3px; }
+  .logo p { font-size: 11px; color: #718096; margin-top: 2px; }
+  .nav { flex: 1; padding: 10px 8px; overflow-y: auto; }
+  .nav-item { display: flex; align-items: center; gap: 9px; padding: 9px 10px; border-radius: 7px; cursor: pointer; font-size: 13px; font-weight: 500; color: #4a5568; transition: all 0.15s; margin-bottom: 2px; border: none; background: none; width: 100%; text-align: left; }
+  .nav-item:hover { background: #f0f4ff; color: #1a56db; }
+  .nav-item.active { background: #1a56db; color: white; }
+  .nav-item .icon { font-size: 16px; width: 20px; text-align: center; }
+  .progress-bar-wrap { padding: 12px 16px; border-top: 1px solid #e2e8f0; }
+  .progress-label { font-size: 11px; color: #718096; margin-bottom: 5px; display: flex; justify-content: space-between; }
+  .progress-bar { height: 5px; background: #e2e8f0; border-radius: 99px; overflow: hidden; }
+  .progress-fill { height: 100%; background: #1a56db; border-radius: 99px; transition: width 0.5s; }
+
+  .main { flex: 1; overflow-y: auto; padding: 28px 32px; }
+  .section { display: none; }
+  .section.active { display: block; }
+  .section-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  .section-sub { font-size: 13px; color: #718096; margin-bottom: 24px; }
+
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; margin-bottom: 24px; }
+  .card { background: #fff; border-radius: 10px; border: 1px solid #e2e8f0; padding: 18px; cursor: pointer; transition: all 0.15s; }
+  .card:hover { border-color: #1a56db; box-shadow: 0 2px 12px rgba(26,86,219,0.12); transform: translateY(-1px); }
+  .card .card-icon { font-size: 28px; margin-bottom: 10px; }
+  .card .card-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .card .card-desc { font-size: 12px; color: #718096; line-height: 1.5; }
+
+  table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 10px; overflow: hidden; border: 1px solid #e2e8f0; margin-bottom: 20px; }
+  th { background: #1a56db; color: white; padding: 11px 14px; font-size: 12px; text-align: left; }
+  td { padding: 10px 14px; font-size: 13px; border-bottom: 1px solid #e2e8f0; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #f7f9ff; }
+  .badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+
+  .diagram-wrap { background: #fff; border-radius: 10px; border: 1px solid #e2e8f0; padding: 24px; margin-bottom: 20px; }
+  .diagram-title { font-size: 14px; font-weight: 600; margin-bottom: 16px; color: #4a5568; }
+
+  .quiz-card { background: #fff; border-radius: 10px; border: 1px solid #e2e8f0; padding: 24px; max-width: 680px; }
+  .quiz-q { font-size: 16px; font-weight: 600; margin-bottom: 18px; line-height: 1.5; }
+  .quiz-opts { display: flex; flex-direction: column; gap: 10px; }
+  .quiz-opt { padding: 12px 16px; border-radius: 8px; border: 2px solid #e2e8f0; cursor: pointer; font-size: 14px; transition: all 0.15s; text-align: left; background: none; color: inherit; }
+  .quiz-opt:hover { border-color: #1a56db; background: #f0f4ff; }
+  .quiz-opt.correct { border-color: #22c55e; background: #f0fdf4; color: #15803d; }
+  .quiz-opt.wrong { border-color: #ef4444; background: #fef2f2; color: #b91c1c; }
+  .quiz-feedback { margin-top: 16px; padding: 12px 16px; border-radius: 8px; font-size: 13px; line-height: 1.5; }
+  .quiz-feedback.ok { background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; }
+  .quiz-feedback.fail { background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; }
+  .quiz-nav { display: flex; align-items: center; justify-content: space-between; margin-top: 18px; }
+  .quiz-counter { font-size: 12px; color: #718096; }
+  .btn { padding: 9px 18px; border-radius: 7px; border: none; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.15s; }
+  .btn-primary { background: #1a56db; color: white; }
+  .btn-primary:hover { background: #1648c0; }
+  .btn-secondary { background: #f0f4f8; color: #4a5568; }
+  .btn-secondary:hover { background: #e2e8f0; }
+
+  .calc-wrap { background: #fff; border-radius: 10px; border: 1px solid #e2e8f0; padding: 24px; max-width: 600px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+  .form-group label { display: block; font-size: 12px; font-weight: 600; color: #4a5568; margin-bottom: 5px; }
+  .form-group select, .form-group input { width: 100%; padding: 9px 11px; border: 1px solid #e2e8f0; border-radius: 7px; font-size: 13px; color: inherit; background: #fff; }
+  .result-box { background: #f0f4ff; border: 1px solid #c7d7f5; border-radius: 8px; padding: 16px; margin-top: 16px; }
+  .result-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #c7d7f5; font-size: 13px; }
+  .result-row:last-child { border-bottom: none; }
+  .result-val { font-weight: 700; color: #1a56db; font-size: 15px; }
+
+  .flow-anim { stroke-dasharray: 8 4; animation: dash 1.5s linear infinite; }
+  @keyframes dash { to { stroke-dashoffset: -36; } }
+  .pulse { animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  .tabs { display: flex; gap: 4px; margin-bottom: 18px; border-bottom: 1px solid #e2e8f0; }
+  .tab { padding: 8px 16px; font-size: 13px; font-weight: 500; cursor: pointer; border-bottom: 2px solid transparent; color: #718096; transition: all 0.15s; border-top: none; border-left: none; border-right: none; background: none; }
+  .tab.active { border-bottom-color: #1a56db; color: #1a56db; }
+  .tab:hover { color: #1a56db; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  .info-box { padding: 14px 16px; border-radius: 8px; font-size: 13px; line-height: 1.6; margin-bottom: 14px; }
+  .info-blue { background: #eff6ff; border-left: 3px solid #1a56db; }
+  .info-yellow { background: #fffbeb; border-left: 3px solid #f59e0b; }
+  .info-red { background: #fef2f2; border-left: 3px solid #ef4444; }
+  .info-green { background: #f0fdf4; border-left: 3px solid #22c55e; }
+
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; margin-right: 4px; }
+  .formula { font-family: 'Courier New', monospace; background: #f1f5f9; padding: 10px 14px; border-radius: 6px; font-size: 13px; margin: 8px 0; }
+
+  .step-list { list-style: none; counter-reset: step; }
+  .step-list li { counter-increment: step; display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid #e2e8f0; font-size: 13px; line-height: 1.5; }
+  .step-list li:last-child { border-bottom: none; }
+  .step-list li::before { content: counter(step); background: #1a56db; color: white; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="logo">
+      <h1>💧 NFPA 13</h1>
+      <p>Projektowanie Tryskaczy</p>
+    </div>
+    <nav class="nav">
+      <button class="nav-item active" onclick="showSection('home')"><span class="icon">🏠</span> Start</button>
+      <button class="nav-item" onclick="showSection('types')"><span class="icon">🔵</span> Typy Systemów</button>
+      <button class="nav-item" onclick="showSection('hazards')"><span class="icon">🛡️</span> Klasy Zagrożeń</button>
+      <button class="nav-item" onclick="showSection('sprinklers')"><span class="icon">🔩</span> Tryskacze</button>
+      <button class="nav-item" onclick="showSection('hydraulics')"><span class="icon">📐</span> Hydraulika</button>
+      <button class="nav-item" onclick="showSection('obstacles')"><span class="icon">🚧</span> Przeszkody</button>
+      <button class="nav-item" onclick="showSection('calc')"><span class="icon">🧮</span> Kalkulator</button>
+      <button class="nav-item" onclick="showSection('quiz')"><span class="icon">🎯</span> Quiz</button>
+    </nav>
+    <div class="progress-bar-wrap">
+      <div class="progress-label"><span>Postęp nauki</span><span id="prog-pct">0%</span></div>
+      <div class="progress-bar"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <!-- HOME -->
+    <div class="section active" id="section-home">
+      <div class="section-title">Witaj w kursie NFPA 13!</div>
+      <div class="section-sub">Wybierz moduł, aby rozpocząć naukę projektowania systemów tryskaczowych.</div>
+      <div class="cards">
+        <div class="card" onclick="showSection('types')">
+          <div class="card-icon">🔵</div>
+          <div class="card-title">Typy Systemów</div>
+          <div class="card-desc">Mokry, suchy, pre-action, zalewowy — kiedy stosować każdy z nich.</div>
+        </div>
+        <div class="card" onclick="showSection('hazards')">
+          <div class="card-icon">🛡️</div>
+          <div class="card-title">Klasy Zagrożeń</div>
+          <div class="card-desc">LH, OH1, OH2, EH1, EH2 — parametry gęstości i obszarów obliczeniowych.</div>
+        </div>
+        <div class="card" onclick="showSection('sprinklers')">
+          <div class="card-icon">🔩</div>
+          <div class="card-title">Tryskacze i Ampułki</div>
+          <div class="card-desc">Kody kolorystyczne, temperatury zadziałania, zasada działania.</div>
+        </div>
+        <div class="card" onclick="showSection('hydraulics')">
+          <div class="card-icon">📐</div>
+          <div class="card-title">Obliczenia Hydrauliczne</div>
+          <div class="card-desc">Wzory Q i Hazen-Williams, krok po kroku na przykładzie OH2.</div>
+        </div>
+        <div class="card" onclick="showSection('calc')">
+          <div class="card-icon">🧮</div>
+          <div class="card-title">Kalkulator Q i p</div>
+          <div class="card-desc">Oblicz przepływ i ciśnienie dla wybranej klasy zagrożenia na żywo.</div>
+        </div>
+        <div class="card" onclick="showSection('quiz')">
+          <div class="card-icon">🎯</div>
+          <div class="card-title">Quiz 10 pytań</div>
+          <div class="card-desc">Sprawdź wiedzę — losowe pytania z całego kursu NFPA 13.</div>
+        </div>
+      </div>
+
+      <div class="diagram-wrap">
+        <div class="diagram-title">⚡ Sekwencja zdarzeń — System Mokry (Wet Pipe)</div>
+        <svg viewBox="0 0 700 120" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:700px">
+          <rect x="5" y="30" width="120" height="54" rx="8" fill="#eff6ff" stroke="#1a56db" stroke-width="1.5"/>
+          <text x="65" y="52" text-anchor="middle" font-size="18">🌡️</text>
+          <text x="65" y="68" text-anchor="middle" font-size="10" fill="#1a56db" font-weight="600">WZROST TEMP.</text>
+          <text x="65" y="79" text-anchor="middle" font-size="9" fill="#4a5568">Ciepło pod stropem</text>
+
+          <rect x="150" y="30" width="120" height="54" rx="8" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5"/>
+          <text x="210" y="52" text-anchor="middle" font-size="18">💥</text>
+          <text x="210" y="68" text-anchor="middle" font-size="10" fill="#b45309" font-weight="600">AKTYWACJA</text>
+          <text x="210" y="79" text-anchor="middle" font-size="9" fill="#4a5568">Pęknięcie ampułki</text>
+
+          <rect x="295" y="30" width="120" height="54" rx="8" fill="#eff6ff" stroke="#1a56db" stroke-width="1.5"/>
+          <text x="355" y="52" text-anchor="middle" font-size="18">💧</text>
+          <text x="355" y="68" text-anchor="middle" font-size="10" fill="#1a56db" font-weight="600">WYPŁYW WODY</text>
+          <text x="355" y="79" text-anchor="middle" font-size="9" fill="#4a5568">Deflektor → zraszanie</text>
+
+          <rect x="440" y="30" width="120" height="54" rx="8" fill="#f0fdf4" stroke="#22c55e" stroke-width="1.5"/>
+          <text x="500" y="52" text-anchor="middle" font-size="18">🔔</text>
+          <text x="500" y="68" text-anchor="middle" font-size="10" fill="#15803d" font-weight="600">ALARM</text>
+          <text x="500" y="79" text-anchor="middle" font-size="9" fill="#4a5568">SAP / Dzwonek hydraul.</text>
+
+          <rect x="585" y="30" width="110" height="54" rx="8" fill="#fef2f2" stroke="#ef4444" stroke-width="1.5"/>
+          <text x="640" y="52" text-anchor="middle" font-size="18">🚒</text>
+          <text x="640" y="68" text-anchor="middle" font-size="10" fill="#b91c1c" font-weight="600">STRAŻ POŻARNA</text>
+          <text x="640" y="79" text-anchor="middle" font-size="9" fill="#4a5568">Interwencja</text>
+
+          <line x1="125" y1="57" x2="148" y2="57" stroke="#94a3b8" stroke-width="2" marker-end="url(#arr)"/>
+          <line x1="270" y1="57" x2="293" y2="57" stroke="#94a3b8" stroke-width="2" marker-end="url(#arr)"/>
+          <line x1="415" y1="57" x2="438" y2="57" stroke="#94a3b8" stroke-width="2" marker-end="url(#arr)"/>
+          <line x1="560" y1="57" x2="583" y2="57" stroke="#94a3b8" stroke-width="2" marker-end="url(#arr)"/>
+          <defs>
+            <marker id="arr" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+              <path d="M0,0 L7,3.5 L0,7 Z" fill="#94a3b8"/>
+            </marker>
+          </defs>
+        </svg>
+      </div>
+    </div>
+
+    <!-- TYPY SYSTEMÓW -->
+    <div class="section" id="section-types">
+      <div class="section-title">🔵 Typy Systemów Tryskaczowych</div>
+      <div class="section-sub">Cztery główne technologie — zasada działania, zastosowania, schemat.</div>
+      <div class="tabs">
+        <button class="tab active" onclick="showTab('types','wet',event)">💧 Wet Pipe (Mokry)</button>
+        <button class="tab" onclick="showTab('types','dry',event)">❄️ Dry Pipe (Suchy)</button>
+        <button class="tab" onclick="showTab('types','pre',event)">🛡️ Pre-action</button>
+        <button class="tab" onclick="showTab('types','del',event)">🌊 Deluge (Zalewowy)</button>
+      </div>
+
+      <div class="tab-content active" id="types-wet">
+        <div class="info-box info-blue"><strong>System Mokry</strong> — rury zawsze wypełnione wodą pod ciśnieniem. Najszybszy czas reakcji, najniższy koszt instalacji i serwisu.</div>
+        <div class="diagram-wrap">
+          <div class="diagram-title">Schemat — System Mokry</div>
+          <svg viewBox="0 0 600 180" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:600px">
+            <rect x="30" y="80" width="540" height="14" rx="4" fill="#bfdbfe" stroke="#1a56db" stroke-width="1.5"/>
+            <line x1="40" y1="87" x2="80" y2="87" stroke="#1a56db" stroke-width="1.5" class="flow-anim"/>
+            <line x1="100" y1="87" x2="140" y2="87" stroke="#1a56db" stroke-width="1.5" class="flow-anim"/>
+            <line x1="160" y1="87" x2="200" y2="87" stroke="#1a56db" stroke-width="1.5" class="flow-anim"/>
+            <g transform="translate(120,0)">
+              <line x1="0" y1="80" x2="0" y2="50" stroke="#64748b" stroke-width="2"/>
+              <ellipse cx="0" cy="42" rx="14" ry="6" fill="#f59e0b" stroke="#b45309" stroke-width="1.5"/>
+              <text x="0" y="35" text-anchor="middle" font-size="9" fill="#b45309">🔴 68°C</text>
+              <text x="0" y="68" text-anchor="middle" font-size="9" fill="#1a56db">AKTYWNY</text>
+              <text x="-12" y="130" font-size="12" class="pulse">💧</text>
+              <text x="5" y="140" font-size="12" class="pulse" style="animation-delay:0.3s">💧</text>
+              <text x="-5" y="155" font-size="12" class="pulse" style="animation-delay:0.6s">💧</text>
+            </g>
+            <g transform="translate(280,0)">
+              <line x1="0" y1="80" x2="0" y2="50" stroke="#64748b" stroke-width="2"/>
+              <ellipse cx="0" cy="42" rx="14" ry="6" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5"/>
+              <text x="0" y="35" text-anchor="middle" font-size="9" fill="#4a5568">🔴 68°C</text>
+              <text x="0" y="68" text-anchor="middle" font-size="9" fill="#94a3b8">ZAMKNIĘTY</text>
+            </g>
+            <g transform="translate(440,0)">
+              <line x1="0" y1="80" x2="0" y2="50" stroke="#64748b" stroke-width="2"/>
+              <ellipse cx="0" cy="42" rx="14" ry="6" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5"/>
+              <text x="0" y="35" text-anchor="middle" font-size="9" fill="#4a5568">🔴 68°C</text>
+              <text x="0" y="68" text-anchor="middle" font-size="9" fill="#94a3b8">ZAMKNIĘTY</text>
+            </g>
+            <text x="30" y="110" font-size="10" fill="#1a56db">← WODA POD CIŚNIENIEM →</text>
+            <rect x="30" y="120" width="60" height="26" rx="5" fill="#dbeafe" stroke="#1a56db"/>
+            <text x="60" y="137" text-anchor="middle" font-size="10" fill="#1a56db">POMPOWNIA</text>
+          </svg>
+        </div>
+        <table>
+          <tr><th>Parametr</th><th>Wartość</th></tr>
+          <tr><td>Czas reakcji</td><td><strong>Natychmiastowy</strong> (woda już w rurach)</td></tr>
+          <tr><td>Temperatura medium</td><td>&gt; 4°C (ryzyko zamarzania!)</td></tr>
+          <tr><td>Koszt CAPEX</td><td>Najniższy z wszystkich systemów</td></tr>
+          <tr><td>Typowe zastosowania</td><td>Biura, hotele, centra handlowe, hale produkcyjne</td></tr>
+        </table>
+      </div>
+
+      <div class="tab-content" id="types-dry">
+        <div class="info-box info-yellow"><strong>System Suchy</strong> — rury wypełnione sprężonym powietrzem lub azotem. Przy aktywacji tryskacza powietrze wycieka → otwiera się zawór suchego systemu → woda wpływa do rur.</div>
+        <div class="diagram-wrap">
+          <div class="diagram-title">Schemat — System Suchy</div>
+          <svg viewBox="0 0 600 160" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:600px">
+            <rect x="30" y="70" width="200" height="14" rx="4" fill="#bfdbfe" stroke="#1a56db" stroke-width="1.5"/>
+            <text x="130" y="100" text-anchor="middle" font-size="10" fill="#1a56db">WODA</text>
+            <rect x="225" y="58" width="30" height="38" rx="4" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+            <text x="240" y="82" text-anchor="middle" font-size="9" fill="#b45309">DV</text>
+            <rect x="255" y="70" width="315" height="14" rx="4" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="5 2"/>
+            <text x="415" y="100" text-anchor="middle" font-size="10" fill="#b45309">SPRĘŻONE POWIETRZE / N₂</text>
+            <g transform="translate(340,0)">
+              <line x1="0" y1="70" x2="0" y2="40" stroke="#64748b" stroke-width="2"/>
+              <ellipse cx="0" cy="32" rx="14" ry="6" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5"/>
+              <text x="0" y="58" text-anchor="middle" font-size="9" fill="#b45309">POWIETRZE</text>
+            </g>
+            <g transform="translate(490,0)">
+              <line x1="0" y1="70" x2="0" y2="40" stroke="#64748b" stroke-width="2"/>
+              <ellipse cx="0" cy="32" rx="14" ry="6" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5"/>
+              <text x="0" y="58" text-anchor="middle" font-size="9" fill="#b45309">POWIETRZE</text>
+            </g>
+            <text x="240" y="130" text-anchor="middle" font-size="10" fill="#b45309" font-weight="600">ZAWÓR SUCHEGO SYSTEMU (DV)</text>
+            <rect x="500" y="115" width="70" height="24" rx="4" fill="#fef3c7" stroke="#f59e0b"/>
+            <text x="535" y="131" text-anchor="middle" font-size="9" fill="#b45309">SPRĘŻARKA</text>
+          </svg>
+        </div>
+        <table>
+          <tr><th>Parametr</th><th>Wartość</th></tr>
+          <tr><td>Czas reakcji</td><td>~30–60 s (opróżnianie powietrza z rur)</td></tr>
+          <tr><td>Temperatura</td><td>Poniżej 0°C — brak ryzyka zamarzania</td></tr>
+          <tr><td>Koszt CAPEX</td><td>Wyższy niż Wet Pipe (~15–25%)</td></tr>
+          <tr><td>Zastosowania</td><td>Chłodnie, parkingi otwarte, strychy, budynki nieogrzewane</td></tr>
+        </table>
+      </div>
+
+      <div class="tab-content" id="types-pre">
+        <div class="info-box info-green"><strong>System Pre-Action</strong> — podwójne zabezpieczenie. Woda nie wpływa do rur dopóki nie zadziała ZARÓWNO sygnał z SAP JAK I tryskacz. Eliminuje przypadkowe zalanie.</div>
+        <table>
+          <tr><th>Parametr</th><th>Wartość</th></tr>
+          <tr><td>Uruchomienie</td><td>SAP wykrywa pożar → otwiera zawór pre-action → woda wypełnia rury → tryskacz otwiera → wypływ</td></tr>
+          <tr><td>Zaleta</td><td>Podwójne zabezpieczenie przed niezamierzonym zalaniem</td></tr>
+          <tr><td>Koszt</td><td>Najwyższy (wymagany SAP + sterownik)</td></tr>
+          <tr><td>Zastosowania</td><td>Serwerownie, muzea, archiwa, centra danych</td></tr>
+        </table>
+      </div>
+
+      <div class="tab-content" id="types-del">
+        <div class="info-box info-red"><strong>System Zalewowy (Deluge)</strong> — tryskacze zawsze otwarte. SAP otwiera zawór → cała strefa natychmiast zalana. Maksymalna prędkość gaszenia.</div>
+        <table>
+          <tr><th>Parametr</th><th>Wartość</th></tr>
+          <tr><td>Tryskacze</td><td>Otwarte (bez ampułki termicznej)</td></tr>
+          <tr><td>Uruchomienie</td><td>Sygnał SAP → otwarcie zaworu zalewowego → cała strefa</td></tr>
+          <tr><td>Zużycie wody</td><td>Bardzo wysokie (wszystkie tryskacze jednocześnie)</td></tr>
+          <tr><td>Zastosowania</td><td>Hangary lotnicze, zakłady chemiczne, zbiorniki paliw, transformatory</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- HAZARDS -->
+    <div class="section" id="section-hazards">
+      <div class="section-title">🛡️ Klasy Zagrożeń NFPA 13</div>
+      <div class="section-sub">Parametry gęstości zraszania i obszarów obliczeniowych wg NFPA 13 Rozdział 19.</div>
+      <table>
+        <tr><th>Symbol</th><th>Klasa Zagrożenia</th><th>Gęstość [mm/min]</th><th>Obszar [m²]</th><th>Przykłady</th></tr>
+        <tr><td><span class="badge" style="background:#dbeafe;color:#1a56db">🟦 LH</span></td><td><strong>Light Hazard</strong></td><td>4.1</td><td>139</td><td>Biura, szkoły, hotele, kościoły</td></tr>
+        <tr><td><span class="badge" style="background:#dcfce7;color:#15803d">🟩 OH1</span></td><td><strong>Ordinary Hazard 1</strong></td><td>6.1</td><td>139</td><td>Restauracje, parkingi, sklepy</td></tr>
+        <tr><td><span class="badge" style="background:#fef9c3;color:#854d0e">🟨 OH2</span></td><td><strong>Ordinary Hazard 2</strong></td><td>8.1</td><td>139</td><td>Produkcja, warsztaty, drukarnie</td></tr>
+        <tr><td><span class="badge" style="background:#ffedd5;color:#c2410c">🟧 EH1</span></td><td><strong>Extra Hazard 1</strong></td><td>12.2</td><td>232</td><td>Tartaki, hangary, lakiernie</td></tr>
+        <tr><td><span class="badge" style="background:#fee2e2;color:#b91c1c">🟥 EH2</span></td><td><strong>Extra Hazard 2</strong></td><td>16.3</td><td>232</td><td>Chemia, tworzywa, zakłady gumowe</td></tr>
+      </table>
+      <div class="diagram-wrap">
+        <div class="diagram-title">📊 Wykres gęstości zraszania</div>
+        <svg viewBox="0 0 560 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:560px">
+          <rect x="40" y="140" width="70" height="30" rx="3" fill="#bfdbfe" stroke="#1a56db"/>
+          <rect x="130" y="120" width="70" height="50" rx="3" fill="#bbf7d0" stroke="#22c55e"/>
+          <rect x="220" y="97" width="70" height="73" rx="3" fill="#fef08a" stroke="#ca8a04"/>
+          <rect x="310" y="55" width="70" height="115" rx="3" fill="#fdba74" stroke="#ea580c"/>
+          <rect x="400" y="20" width="70" height="150" rx="3" fill="#fca5a5" stroke="#dc2626"/>
+          <text x="75" y="135" text-anchor="middle" font-size="11" fill="#1a56db" font-weight="700">4.1</text>
+          <text x="165" y="115" text-anchor="middle" font-size="11" fill="#15803d" font-weight="700">6.1</text>
+          <text x="255" y="92" text-anchor="middle" font-size="11" fill="#854d0e" font-weight="700">8.1</text>
+          <text x="345" y="50" text-anchor="middle" font-size="11" fill="#c2410c" font-weight="700">12.2</text>
+          <text x="435" y="15" text-anchor="middle" font-size="11" fill="#b91c1c" font-weight="700">16.3</text>
+          <text x="75" y="185" text-anchor="middle" font-size="10" fill="#4a5568">LH</text>
+          <text x="165" y="185" text-anchor="middle" font-size="10" fill="#4a5568">OH1</text>
+          <text x="255" y="185" text-anchor="middle" font-size="10" fill="#4a5568">OH2</text>
+          <text x="345" y="185" text-anchor="middle" font-size="10" fill="#4a5568">EH1</text>
+          <text x="435" y="185" text-anchor="middle" font-size="10" fill="#4a5568">EH2</text>
+          <line x1="30" y1="170" x2="30" y2="10" stroke="#94a3b8" stroke-width="1"/>
+          <text x="25" y="170" text-anchor="end" font-size="9" fill="#94a3b8">0</text>
+          <text x="25" y="90" text-anchor="end" font-size="9" fill="#94a3b8">8</text>
+          <text x="25" y="20" text-anchor="end" font-size="9" fill="#94a3b8">16</text>
+          <text x="12" y="100" text-anchor="middle" font-size="9" fill="#94a3b8" transform="rotate(-90,12,100)">mm/min</text>
+        </svg>
+      </div>
+      <div class="info-box info-yellow"><strong>⚠️ Ważne:</strong> Obszar obliczeniowy to <em>strefa jednoczesnego działania tryskaczy</em>. Dla LH i OH wynosi <strong>139 m²</strong>, dla EH — <strong>232 m²</strong>.</div>
+    </div>
+
+    <!-- SPRINKLERS -->
+    <div class="section" id="section-sprinklers">
+      <div class="section-title">🔩 Tryskacze i Ampułki Termiczne</div>
+      <div class="section-sub">Kody kolorystyczne ampułek, temperatury zadziałania, zasada działania.</div>
+      <div class="diagram-wrap">
+        <div class="diagram-title">Budowa tryskacza i zasada działania ampułki</div>
+        <svg viewBox="0 0 500 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:500px">
+          <rect x="220" y="20" width="60" height="30" rx="5" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5"/>
+          <text x="250" y="39" text-anchor="middle" font-size="10" fill="#4a5568">Gniazdo</text>
+          <ellipse cx="250" cy="65" rx="12" ry="18" fill="#ef4444" fill-opacity="0.8" stroke="#b91c1c" stroke-width="1.5"/>
+          <text x="250" y="69" text-anchor="middle" font-size="9" fill="white" font-weight="700">68°C</text>
+          <ellipse cx="250" cy="96" rx="30" ry="7" fill="#94a3b8" stroke="#64748b" stroke-width="1.5"/>
+          <text x="250" y="114" text-anchor="middle" font-size="10" fill="#4a5568">Deflektor</text>
+          <path d="M220,96 Q180,140 150,170" stroke="#bfdbfe" stroke-width="2" fill="none"/>
+          <path d="M250,103 Q250,145 250,175" stroke="#bfdbfe" stroke-width="2" fill="none"/>
+          <path d="M280,96 Q320,140 350,170" stroke="#bfdbfe" stroke-width="2" fill="none"/>
+          <path d="M230,100 Q200,145 180,172" stroke="#bfdbfe" stroke-width="1.5" fill="none"/>
+          <path d="M270,100 Q300,145 320,172" stroke="#bfdbfe" stroke-width="1.5" fill="none"/>
+          <text x="140" y="165" font-size="9" fill="#1a56db">Wzorzec</text>
+          <text x="140" y="175" font-size="9" fill="#1a56db">zraszania</text>
+          <line x1="100" y1="65" x2="235" y2="65" stroke="#f59e0b" stroke-width="1" stroke-dasharray="3 2"/>
+          <text x="95" y="68" text-anchor="end" font-size="10" fill="#b45309">Ampułka</text>
+          <line x1="100" y1="96" x2="218" y2="96" stroke="#94a3b8" stroke-width="1" stroke-dasharray="3 2"/>
+          <text x="95" y="99" text-anchor="end" font-size="10" fill="#4a5568">Deflektor</text>
+          <rect x="340" y="40" width="130" height="80" rx="6" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+          <text x="405" y="58" text-anchor="middle" font-size="11" fill="#b45309" font-weight="600">Temperatura</text>
+          <text x="405" y="72" text-anchor="middle" font-size="10" fill="#4a5568">rośnie →</text>
+          <text x="405" y="88" text-anchor="middle" font-size="10" fill="#4a5568">płyn w ampułce</text>
+          <text x="405" y="100" text-anchor="middle" font-size="10" fill="#4a5568">rozszerza się →</text>
+          <text x="405" y="112" text-anchor="middle" font-size="10" fill="#b91c1c" font-weight="600">PĘKNIĘCIE!</text>
+        </svg>
+      </div>
+      <table>
+        <tr><th>Kolor Ampułki</th><th>Temperatura Zadziałania</th><th>Zastosowanie</th></tr>
+        <tr><td><span class="badge" style="background:#fee2e2;color:#b91c1c">🔴 Czerwony</span></td><td><strong>68°C</strong></td><td>Standard — biura, hotele, magazyny, hale</td></tr>
+        <tr><td><span class="badge" style="background:#fef9c3;color:#854d0e">🟡 Żółty</span></td><td><strong>79°C</strong></td><td>Hale produkcyjne, wyższe temperatury otoczenia</td></tr>
+        <tr><td><span class="badge" style="background:#dcfce7;color:#15803d">🟢 Zielony</span></td><td><strong>93°C</strong></td><td>Kuchnie przemysłowe, kotłownie, sauny</td></tr>
+        <tr><td><span class="badge" style="background:#dbeafe;color:#1a56db">🔵 Niebieski</span></td><td><strong>141°C</strong></td><td>Przemysł ciężki, sąsiedztwo promienników ciepła</td></tr>
+        <tr><td><span class="badge" style="background:#f3e8ff;color:#7e22ce">🟣 Fioletowy</span></td><td><strong>182°C</strong></td><td>Piece, piece hutnicze, ekstremalnie gorące otoczenia</td></tr>
+      </table>
+      <div class="info-box info-blue"><strong>📏 Zasada doboru:</strong> Temperatura zadziałania tryskacza powinna być o <strong>minimum 30°C wyższa</strong> niż maksymalna temperatura otoczenia w chronionym pomieszczeniu.</div>
+    </div>
+
+    <!-- HYDRAULICS -->
+    <div class="section" id="section-hydraulics">
+      <div class="section-title">📐 Obliczenia Hydrauliczne NFPA 13</div>
+      <div class="section-sub">Krok po kroku — pełny przykład dla hali OH2 (Ordinary Hazard 2).</div>
+      <div class="diagram-wrap">
+        <div class="diagram-title">🔑 Kluczowe wzory hydrauliczne</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div>
+            <p style="font-size:13px;font-weight:600;margin-bottom:6px">Wzór Q — Przepływ przez tryskacz:</p>
+            <div class="formula">Q = K × √p</div>
+            <ul style="font-size:12px;color:#4a5568;margin-top:6px;padding-left:16px;line-height:1.8">
+              <li>Q — przepływ [L/min]</li>
+              <li>K — współczynnik wypływu tryskacza</li>
+              <li>p — ciśnienie robocze [bar]</li>
+            </ul>
+          </div>
+          <div>
+            <p style="font-size:13px;font-weight:600;margin-bottom:6px">Wzór Hazen-Williams — Straty:</p>
+            <div class="formula">Δp = 6.05 × Q¹·⁸⁵ / (C¹·⁸⁵ × d⁴·⁸⁷) × L</div>
+            <ul style="font-size:12px;color:#4a5568;margin-top:6px;padding-left:16px;line-height:1.8">
+              <li>C=120 — stal czarna (system mokry)</li>
+              <li>d — śred. wewnętrzna [mm]</li>
+              <li>L — długość odcinka [m]</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="calc-wrap" style="max-width:100%">
+        <p style="font-size:15px;font-weight:700;margin-bottom:16px">📋 Przykład krok po kroku — Hala OH2</p>
+        <ol class="step-list">
+          <li><div><strong>Klasyfikacja zagrożenia:</strong> Hala produkcyjna (części metalowe + plastik) → <span class="badge" style="background:#fef9c3;color:#854d0e">OH2</span><br><span style="color:#4a5568;font-size:12px">Gęstość: <strong>8.1 mm/min</strong> | Obszar obliczeniowy: <strong>139 m²</strong></span></div></li>
+          <li><div><strong>Geometria:</strong> Rozstaw tryskaczy 3.0 × 3.0 m<br><span class="formula" style="display:inline-block;margin-top:4px">A_tryskacza = 3.0 × 3.0 = 9 m²</span><span style="color:#22c55e;font-size:12px;display:block;margin-top:4px">✓ Maks. dla OH2: 12 m² → 9 m² jest OK</span></div></li>
+          <li><div><strong>Minimalny przepływ Q_min:</strong><br><span class="formula" style="display:inline-block;margin-top:4px">Q_min = 8.1 [mm/min] × 9 [m²] = 72.9 L/min</span></div></li>
+          <li><div><strong>Ciśnienie robocze p</strong> dla tryskacza K=80 (metryczny):<br><span class="formula" style="display:inline-block;margin-top:4px">p = (Q/K)² = (72.9/80)² = 0.83 bar</span><span style="color:#22c55e;font-size:12px;display:block;margin-top:4px">✓ Min. NFPA 13: 0.35 bar → 0.83 bar spełnia wymóg</span></div></li>
+          <li><div><strong>Straty na gałęzi DN40</strong> (d=40.9 mm, L=3m, Q=145.8 L/min):<br><span class="formula" style="display:inline-block;margin-top:4px">Δp = 6.05 × 145.8¹·⁸⁵ / (120¹·⁸⁵ × 40.9⁴·⁸⁷) × 3 ≈ 0.08 bar</span></div></li>
+          <li><div><strong>Liczba tryskaczy w obszarze:</strong><br><span class="formula" style="display:inline-block;margin-top:4px">n = 139 m² / 9 m² ≈ 15 tryskaczy</span></div></li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- OBSTACLES -->
+    <div class="section" id="section-obstacles">
+      <div class="section-title">🚧 Przeszkody i Reguły Rozmieszczenia</div>
+      <div class="section-sub">Jak prawidłowo omijać przeszkody wg NFPA 13 — reguły i przykłady BIM.</div>
+      <div class="diagram-wrap">
+        <div class="diagram-title">Reguła 3-krotności (Three-Times Rule)</div>
+        <svg viewBox="0 0 560 180" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:560px">
+          <rect x="0" y="0" width="560" height="20" fill="#e2e8f0"/>
+          <text x="280" y="13" text-anchor="middle" font-size="10" fill="#4a5568">STROP</text>
+          <rect x="220" y="20" width="120" height="40" rx="4" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+          <text x="280" y="38" text-anchor="middle" font-size="11" fill="#b45309" font-weight="600">PRZESZKODA</text>
+          <text x="280" y="52" text-anchor="middle" font-size="10" fill="#b45309">szer. = W</text>
+          <line x1="220" y1="70" x2="340" y2="70" stroke="#f59e0b" stroke-width="1" stroke-dasharray="3 2"/>
+          <text x="280" y="83" text-anchor="middle" font-size="10" fill="#b45309">W = 120</text>
+          <line x1="130" y1="20" x2="130" y2="50" stroke="#22c55e" stroke-width="2"/>
+          <ellipse cx="130" cy="57" rx="14" ry="6" fill="#22c55e" fill-opacity="0.7" stroke="#15803d"/>
+          <text x="130" y="75" text-anchor="middle" font-size="9" fill="#15803d">✓ OK</text>
+          <text x="130" y="85" text-anchor="middle" font-size="9" fill="#15803d">d &gt; 3W</text>
+          <line x1="220" y1="40" x2="150" y2="55" stroke="#94a3b8" stroke-width="1" stroke-dasharray="3 2"/>
+          <text x="80" y="50" font-size="9" fill="#22c55e" font-weight="600">3×W = 360mm</text>
+          <line x1="370" y1="20" x2="370" y2="50" stroke="#ef4444" stroke-width="2"/>
+          <ellipse cx="370" cy="57" rx="14" ry="6" fill="#ef4444" fill-opacity="0.7" stroke="#b91c1c"/>
+          <text x="370" y="75" text-anchor="middle" font-size="9" fill="#b91c1c">✗ Za blisko</text>
+          <line x1="280" y1="60" x2="280" y2="100" stroke="#1a56db" stroke-width="2"/>
+          <ellipse cx="280" cy="107" rx="14" ry="6" fill="#1a56db" fill-opacity="0.7" stroke="#1e40af"/>
+          <text x="280" y="125" text-anchor="middle" font-size="9" fill="#1a56db">Pod kanałem</text>
+          <rect x="215" y="60" width="130" height="55" fill="#fef2f2" fill-opacity="0.6" stroke="#ef4444" stroke-dasharray="4 2" stroke-width="1.5"/>
+          <text x="280" y="150" text-anchor="middle" font-size="10" fill="#ef4444">⚠️ STREFA CIENIA (bez ochrony!)</text>
+        </svg>
+      </div>
+      <table>
+        <tr><th>Typ Przeszkody</th><th>Problem</th><th>Rozwiązanie NFPA 13</th></tr>
+        <tr><td>🟦 Kanał wentylacyjny (W &gt; 1.2 m)</td><td>Tworzy "cień opadowy"</td><td><strong>Obowiązkowy rząd tryskaczy pod kanałem</strong></td></tr>
+        <tr><td>⬛ Belka stropowa (H = 50 cm)</td><td>Przerywa ciągłość zraszania</td><td><strong>Obniżenie tryskacza</strong> poniżej krawędzi LUB odsunięcie poziome wg Tab. 10.2.7.1.2</td></tr>
+        <tr><td>💡 Oprawa oświetleniowa</td><td>Zakłóca wzorzec strumienia</td><td>Min. <strong>45 cm</strong> odstępu poziomego</td></tr>
+        <tr><td>🗄️ Regał magazynowy</td><td>Wysoka składowanie blokuje dachowe</td><td><strong>Tryskacze międzyregałowe (In-Rack)</strong> z osłonami</td></tr>
+      </table>
+    </div>
+
+    <!-- CALCULATOR -->
+    <div class="section" id="section-calc">
+      <div class="section-title">🧮 Kalkulator Hydrauliczny</div>
+      <div class="section-sub">Oblicz przepływ Q i ciśnienie p dla wybranej klasy zagrożenia.</div>
+      <div class="calc-wrap">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Klasa zagrożenia</label>
+            <select id="calc-hazard" onchange="calculate()">
+              <option value="4.1,139">🟦 LH — Light Hazard</option>
+              <option value="6.1,139">🟩 OH1 — Ordinary Hazard 1</option>
+              <option value="8.1,139" selected>🟨 OH2 — Ordinary Hazard 2</option>
+              <option value="12.2,232">🟧 EH1 — Extra Hazard 1</option>
+              <option value="16.3,232">🟥 EH2 — Extra Hazard 2</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Rozstaw tryskaczy [m × m]</label>
+            <select id="calc-spacing" onchange="calculate()">
+              <option value="2.5">2.5 × 2.5 = 6.25 m²</option>
+              <option value="3.0" selected>3.0 × 3.0 = 9.0 m²</option>
+              <option value="3.5">3.5 × 3.5 = 12.25 m²</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Współczynnik K tryskacza</label>
+            <select id="calc-k" onchange="calculate()">
+              <option value="57">K=57 (DN15 — mały)</option>
+              <option value="80" selected>K=80 (DN20 — standardowy)</option>
+              <option value="115">K=115 (DN25 — duży)</option>
+              <option value="161">K=161 (ESFR)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Średnica rury gałęzi [mm]</label>
+            <select id="calc-pipe" onchange="calculate()">
+              <option value="35.1">DN32 (d=35.1mm)</option>
+              <option value="40.9" selected>DN40 (d=40.9mm)</option>
+              <option value="52.5">DN50 (d=52.5mm)</option>
+            </select>
+          </div>
+        </div>
+        <div class="result-box" id="calc-results"></div>
+      </div>
+    </div>
+
+    <!-- QUIZ -->
+    <div class="section" id="section-quiz">
+      <div class="section-title">🎯 Quiz NFPA 13</div>
+      <div class="section-sub">Sprawdź swoją wiedzę — 10 pytań z całego kursu.</div>
+      <div class="quiz-card" id="quiz-card"></div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+const sections = ['home','types','hazards','sprinklers','hydraulics','obstacles','calc','quiz'];
+const visited = new Set(['home']);
+
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('section-'+id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if ((id==='home' && n.textContent.includes('Start')) ||
+        (id==='types' && n.textContent.includes('Systemy')) ||
+        (id==='hazards' && n.textContent.includes('Zagrożeń')) ||
+        (id==='sprinklers' && n.textContent.includes('Tryskacze')) ||
+        (id==='hydraulics' && n.textContent.includes('Hydraulika')) ||
+        (id==='obstacles' && n.textContent.includes('Przeszkody')) ||
+        (id==='calc' && n.textContent.includes('Kalkulator')) ||
+        (id==='quiz' && n.textContent.includes('Quiz'))) n.classList.add('active');
+  });
+  visited.add(id);
+  updateProgress();
+  if (id==='calc') setTimeout(calculate, 100);
+  if (id==='quiz') initQuiz();
+}
+
+function updateProgress() {
+  const pct = Math.round((visited.size / sections.length) * 100);
+  document.getElementById('prog-fill').style.width = pct+'%';
+  document.getElementById('prog-pct').textContent = pct+'%';
+}
+
+function showTab(section, tab, evt) {
+  document.querySelectorAll('#section-'+section+' .tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('#section-'+section+' .tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(section+'-'+tab).classList.add('active');
+  if (evt && evt.target) evt.target.classList.add('active');
+}
+
+function calculate() {
+  const [density, area] = document.getElementById('calc-hazard').value.split(',').map(Number);
+  const spacing = parseFloat(document.getElementById('calc-spacing').value);
+  const K = parseFloat(document.getElementById('calc-k').value);
+  const d = parseFloat(document.getElementById('calc-pipe').value);
+  const A_trysk = spacing * spacing;
+  const Q_min = density * A_trysk;
+  const p_bar = Math.pow(Q_min / K, 2);
+  const n_trysk = Math.ceil(area / A_trysk);
+  const Q_total = Q_min * n_trysk;
+  const Q_branch = Q_min * 2;
+  const C = 120;
+  const delta_p = 6.05 * Math.pow(Q_branch, 1.85) / (Math.pow(C, 1.85) * Math.pow(d, 4.87)) * spacing;
+  document.getElementById('calc-results').innerHTML = `
+    <div class="result-row"><span>Powierzchnia tryskacza A</span><span class="result-val">${A_trysk.toFixed(2)} m²</span></div>
+    <div class="result-row"><span>Min. przepływ Q_min</span><span class="result-val">${Q_min.toFixed(1)} L/min</span></div>
+    <div class="result-row"><span>Ciśnienie robocze p</span><span class="result-val">${p_bar.toFixed(2)} bar ${p_bar >= 0.35 ? '✅' : '❌ &lt;min 0.35!'}</span></div>
+    <div class="result-row"><span>Liczba tryskaczy w obszarze</span><span class="result-val">${n_trysk} szt.</span></div>
+    <div class="result-row"><span>Całkowity Q obszaru</span><span class="result-val">${Q_total.toFixed(0)} L/min</span></div>
+    <div class="result-row"><span>Strata Δp na gałęzi DN (L=${spacing}m)</span><span class="result-val">${delta_p.toFixed(3)} bar</span></div>
+  `;
+}
+
+const questions = [
+  { q: "Jaka jest gęstość zraszania dla klasy OH2?", opts: ["4.1 mm/min","6.1 mm/min","8.1 mm/min","12.2 mm/min"], ans: 2, explain: "Dla OH2 NFPA 13 wymaga gęstości 8.1 mm/min na obszarze 139 m². Standard dla hal produkcyjnych." },
+  { q: "Który kolor ampułki odpowiada temperaturze 68°C?", opts: ["🟡 Żółty","🟢 Zielony","🔴 Czerwony","🔵 Niebieski"], ans: 2, explain: "Czerwona ampułka (68°C) to kolor standardowy stosowany w biurach, hotelach i magazynach." },
+  { q: "Obszar obliczeniowy dla klas EH1 i EH2 wynosi:", opts: ["93 m²","139 m²","186 m²","232 m²"], ans: 3, explain: "Dla EH1 i EH2 obszar obliczeniowy to 232 m² — większy niż dla LH/OH (139 m²)." },
+  { q: "W systemie mokrym (Wet Pipe) rury są wypełnione:", opts: ["Sprężonym powietrzem","Azotem","Wodą pod ciśnieniem","Próżnią"], ans: 2, explain: "W systemie mokrym woda jest stale pod ciśnieniem. Przy aktywacji tryskacza natychmiast wypływa." },
+  { q: "Wzór Q = K × √p opisuje:", opts: ["Straty Hazen-Williams","Przepływ przez tryskacz","Prędkość wody w rurze","Ciśnienie pompowni"], ans: 1, explain: "Q = K × √p to wzór na przepływ przez tryskacz. K to współczynnik wypływu, p to ciśnienie robocze." },
+  { q: "Reguła 3-krotności mówi, że odległość tryskacza od boku przeszkody musi być:", opts: ["≥ 1× szerokości","≥ 2× szerokości","≥ 3× szerokości","≥ 0.5× szerokości"], ans: 2, explain: "Tryskacz musi być oddalony o co najmniej 3-krotność szerokości przeszkody dla pełnego pokrycia." },
+  { q: "Który system jest zalecany dla serwerowni?", opts: ["Wet Pipe","Dry Pipe","Pre-action","Deluge"], ans: 2, explain: "Pre-action wymaga dwóch sygnałów (SAP + tryskacz), eliminując ryzyko przypadkowego zalania IT." },
+  { q: "Minimalne ciśnienie robocze dla tryskacza wg NFPA 13:", opts: ["0.10 bar","0.35 bar","0.50 bar","1.0 bar"], ans: 1, explain: "NFPA 13 wymaga minimalnego ciśnienia 0.35 bar (5 psi) dla każdego tryskacza." },
+  { q: "Wartość C=120 w wzorze Hazen-Williams dotyczy:", opts: ["Rur PVC","Rur miedzianych","Rur stalowych czarnych (system mokry)","Rur ze stali nierdzewnej"], ans: 2, explain: "C=120 to współczynnik dla rur stalowych czarnych w systemie mokrym wg NFPA 13." },
+  { q: "Ciśnienie próby szczelności instalacji tryskaczowej wynosi:", opts: ["3.5 bar / 30 min","10.5 bar / 2 h","5 bar / 1 h","14 bar / 4 h"], ans: 1, explain: "Próba szczelności: 10.5 bar (150 psi) przez 2 godziny bez dopuszczalnego spadku ciśnienia." }
+];
+
+let quizState = { current: 0, score: 0, answered: false, order: [] };
+
+function initQuiz() {
+  quizState = { current: 0, score: 0, answered: false, order: [...Array(questions.length).keys()].sort(()=>Math.random()-0.5) };
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const { current, score, order } = quizState;
+  if (current >= questions.length) { renderResults(); return; }
+  const q = questions[order[current]];
+  document.getElementById('quiz-card').innerHTML = `
+    <div style="font-size:12px;color:#718096;margin-bottom:12px">Pytanie ${current+1} z ${questions.length}</div>
+    <div class="quiz-q">${q.q}</div>
+    <div class="quiz-opts">${q.opts.map((o,i)=>`<button class="quiz-opt" onclick="answerQuiz(${i})" id="opt-${i}">${o}</button>`).join('')}</div>
+    <div id="quiz-feedback"></div>
+    <div class="quiz-nav">
+      <span class="quiz-counter">Wynik: ${score}/${current}</span>
+      <button class="btn btn-primary" id="quiz-next" onclick="nextQuestion()" style="display:none">Następne →</button>
+    </div>`;
+}
+
+function answerQuiz(idx) {
+  if (quizState.answered) return;
+  quizState.answered = true;
+  const q = questions[quizState.order[quizState.current]];
+  document.querySelectorAll('.quiz-opt').forEach(o => o.disabled = true);
+  document.querySelectorAll('.quiz-opt')[q.ans].classList.add('correct');
+  if (idx === q.ans) { quizState.score++; document.querySelectorAll('.quiz-opt')[idx].classList.add('correct'); document.getElementById('quiz-feedback').innerHTML=`<div class="quiz-feedback ok">✅ <strong>Poprawnie!</strong> ${q.explain}</div>`; }
+  else { document.querySelectorAll('.quiz-opt')[idx].classList.add('wrong'); document.getElementById('quiz-feedback').innerHTML=`<div class="quiz-feedback fail">❌ <strong>Błędna odpowiedź.</strong> ${q.explain}</div>`; }
+  document.getElementById('quiz-next').style.display='inline-block';
+}
+
+function nextQuestion() { quizState.current++; quizState.answered=false; renderQuestion(); }
+
+function renderResults() {
+  const pct = Math.round(quizState.score/questions.length*100);
+  const emoji = pct>=80?'🏆':pct>=60?'👍':'📚';
+  const msg = pct>=80?'Doskonały wynik! Znasz NFPA 13 bardzo dobrze.':pct>=60?'Dobry wynik! Warto powtórzyć słabsze tematy.':'Wróć do materiału — masz wszystkie moduły!';
+  document.getElementById('quiz-card').innerHTML=`<div style="text-align:center;padding:24px 0"><div style="font-size:60px">${emoji}</div><div style="font-size:32px;font-weight:700;margin:12px 0;color:#1a56db">${quizState.score}/${questions.length}</div><div style="font-size:20px;font-weight:600;margin-bottom:8px">${pct}%</div><div style="font-size:14px;color:#4a5568;margin-bottom:24px">${msg}</div><button class="btn btn-primary" onclick="initQuiz()">🔄 Powtórz quiz</button>&nbsp;<button class="btn btn-secondary" onclick="showSection('home')">🏠 Wróć do Start</button></div>`;
+}
+
+calculate();
+initQuiz();
+updateProgress();
+</script>
+</body>
+</html>
