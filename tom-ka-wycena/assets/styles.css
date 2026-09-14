@@ -1,0 +1,224 @@
+/* =========================================================================
+   TOM-KA WYCENA — style wspólne (identyfikacja wizualna TOM-KA)
+   Kolory: granat #0C2E86, błękit #2452D0, tekst #1B2431,
+           tło paneli #F1F5FC, linie #D9E0F0
+   Typografia: nagłówki Caladea (serif), treść Carlito (sans) — osadzone
+   lokalnie (patrz assets/fonts). Bez Google Fonts.
+   ========================================================================= */
+
+/* --- Fonty lokalne (osadź pliki w assets/fonts/ i odkomentuj) ------------
+   Caladea jest metrycznie zgodna z Cambria, Carlito z Calibri — dzięki temu
+   fallback wygląda niemal identycznie, zanim wgrasz pliki .ttf/.woff2.
+@font-face {
+  font-family: "Carlito"; font-style: normal; font-weight: 400;
+  src: url("fonts/Carlito-Regular.woff2") format("woff2");
+  font-display: swap;
+}
+@font-face {
+  font-family: "Carlito"; font-style: normal; font-weight: 700;
+  src: url("fonts/Carlito-Bold.woff2") format("woff2");
+  font-display: swap;
+}
+@font-face {
+  font-family: "Caladea"; font-style: normal; font-weight: 700;
+  src: url("fonts/Caladea-Bold.woff2") format("woff2");
+  font-display: swap;
+}
+--------------------------------------------------------------------------- */
+
+:root {
+  --granat: #0C2E86;
+  --blekit: #2452D0;
+  --tekst: #1B2431;
+  --panel: #F1F5FC;
+  --linia: #D9E0F0;
+  --bialy: #ffffff;
+  --muted: #5a6b85;
+  --ok: #1a7f4b;
+  --ostrzezenie: #8a5a00;
+  --ostrzezenie-tlo: #fff6e0;
+  --blad: #b42318;
+  --sans: "Carlito", "Calibri", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --serif: "Caladea", "Cambria", Georgia, "Times New Roman", serif;
+  --radius: 12px;
+  --cien: 0 1px 3px rgba(12, 46, 134, .08), 0 4px 16px rgba(12, 46, 134, .06);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: var(--sans);
+  color: var(--tekst);
+  background: var(--panel);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3, h4 { font-family: var(--serif); color: var(--granat); line-height: 1.2; }
+a { color: var(--blekit); }
+img { max-width: 100%; }
+
+/* --- Nagłówek / logo --- */
+.topbar {
+  background: var(--granat);
+  color: #fff;
+  padding: 14px 16px;
+}
+.topbar-inner { max-width: 960px; margin: 0 auto; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: #fff; }
+.brand .logo-mark { width: 34px; height: 34px; flex: 0 0 auto; }
+.brand-name { font-family: var(--serif); font-weight: 700; font-size: 18px; letter-spacing: .3px; }
+.brand-sub { font-size: 11px; opacity: .85; letter-spacing: 2px; text-transform: uppercase; }
+.topbar .spacer { flex: 1; }
+.topbar a.link { color: #cfe0ff; font-size: 13px; text-decoration: none; }
+.topbar a.link:hover { text-decoration: underline; }
+
+/* --- Kontener --- */
+.wrap { max-width: 960px; margin: 0 auto; padding: 20px 16px 48px; }
+.wrap-narrow { max-width: 720px; }
+
+/* --- Karty / panele --- */
+.card {
+  background: var(--bialy);
+  border: 1px solid var(--linia);
+  border-radius: var(--radius);
+  box-shadow: var(--cien);
+  padding: 20px;
+}
+.card + .card { margin-top: 16px; }
+
+/* --- Pasek postępu --- */
+.progress { display: flex; align-items: center; gap: 6px; margin: 4px 0 18px; }
+.progress .bar { flex: 1; height: 8px; background: var(--linia); border-radius: 99px; overflow: hidden; }
+.progress .bar > span { display: block; height: 100%; background: var(--blekit); transition: width .25s ease; }
+.progress .label { font-size: 12px; color: var(--muted); white-space: nowrap; }
+
+/* --- Przyciski --- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  font-family: var(--sans); font-size: 15px; font-weight: 700;
+  padding: 12px 20px; border-radius: 10px; border: 1px solid transparent;
+  cursor: pointer; text-decoration: none; line-height: 1.2;
+}
+.btn-primary { background: var(--blekit); color: #fff; }
+.btn-primary:hover { background: var(--granat); }
+.btn-ghost { background: #fff; color: var(--granat); border-color: var(--linia); }
+.btn-ghost:hover { background: var(--panel); }
+.btn-sm { padding: 7px 12px; font-size: 13px; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn-danger { background: #fff; color: var(--blad); border-color: #f0c9c5; }
+
+.actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+.actions .spacer { flex: 1; }
+
+/* --- Pola formularza --- */
+label.field { display: block; margin: 12px 0; }
+label.field > .lbl { display: block; font-size: 14px; font-weight: 700; margin-bottom: 5px; color: var(--tekst); }
+label.field > .hint { font-size: 12px; color: var(--muted); font-weight: 400; }
+input[type="text"], input[type="email"], input[type="tel"], input[type="number"],
+select, textarea {
+  width: 100%; font-family: var(--sans); font-size: 15px; color: var(--tekst);
+  padding: 10px 12px; border: 1px solid var(--linia); border-radius: 9px; background: #fff;
+}
+input:focus, select:focus, textarea:focus { outline: 2px solid var(--blekit); outline-offset: 0; border-color: var(--blekit); }
+textarea { min-height: 84px; resize: vertical; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 560px) { .grid2 { grid-template-columns: 1fr; } }
+
+/* --- Karty wyboru (typ obiektu, usługi, termin) --- */
+.choices { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.choice {
+  border: 2px solid var(--linia); border-radius: 12px; background: #fff; padding: 14px;
+  cursor: pointer; display: flex; gap: 10px; align-items: flex-start; text-align: left;
+}
+.choice:hover { border-color: var(--blekit); }
+.choice.selected { border-color: var(--blekit); background: #f5f8ff; }
+.choice .ck { width: 20px; height: 20px; flex: 0 0 auto; border: 2px solid var(--linia); border-radius: 6px; margin-top: 2px; display: grid; place-items: center; color: #fff; }
+.choice.selected .ck { background: var(--blekit); border-color: var(--blekit); }
+.choice .ck svg { width: 12px; height: 12px; opacity: 0; }
+.choice.selected .ck svg { opacity: 1; }
+.choice .ttl { font-weight: 700; font-size: 15px; }
+.choice .desc { font-size: 12.5px; color: var(--muted); margin-top: 3px; }
+.choice .meta { font-size: 11.5px; color: var(--blekit); margin-top: 6px; }
+.choice.radio .ck { border-radius: 99px; }
+
+/* --- Komunikaty / plakietki --- */
+.alert { border-radius: 10px; padding: 12px 14px; font-size: 13.5px; margin: 10px 0; }
+.alert-warn { background: var(--ostrzezenie-tlo); color: var(--ostrzezenie); border: 1px solid #f0dca8; }
+.alert-info { background: #eef3ff; color: var(--granat); border: 1px solid var(--linia); }
+.badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 99px; }
+.badge-warn { background: var(--ostrzezenie-tlo); color: var(--ostrzezenie); border: 1px solid #f0dca8; }
+.badge-przyklad { background: #fde7c9; color: #7a4d00; }
+
+/* --- Wynik / widełki (tryb A) --- */
+.result-price { font-family: var(--serif); font-weight: 700; color: var(--granat); font-size: 34px; text-align: center; margin: 8px 0; }
+.result-note { text-align: center; color: var(--muted); font-size: 13px; }
+
+/* --- Tabela --- */
+table.tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
+table.tbl th, table.tbl td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--linia); vertical-align: top; }
+table.tbl th { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .3px; }
+table.tbl td.num, table.tbl th.num { text-align: right; white-space: nowrap; }
+.table-scroll { overflow-x: auto; }
+
+/* --- Lista wycen (tryb B) --- */
+.status { font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 99px; text-transform: uppercase; letter-spacing: .3px; }
+.status.szkic { background: #eef1f6; color: #55647d; }
+.status.wyslana { background: #e4edff; color: var(--blekit); }
+.status.zaakceptowana { background: #e3f5ea; color: var(--ok); }
+.status.odrzucona { background: #fdeceb; color: var(--blad); }
+
+/* --- Panel boczny podsumowania (edytor) --- */
+.editor-grid { display: grid; grid-template-columns: 1fr 320px; gap: 18px; align-items: start; }
+@media (max-width: 860px) { .editor-grid { grid-template-columns: 1fr; } }
+.summary-box { position: sticky; top: 16px; }
+.summary-line { display: flex; justify-content: space-between; padding: 5px 0; font-size: 14px; }
+.summary-line.total { border-top: 2px solid var(--linia); margin-top: 6px; padding-top: 10px; font-size: 18px; font-weight: 700; font-family: var(--serif); color: var(--granat); }
+
+.muted { color: var(--muted); }
+.small { font-size: 12.5px; }
+.center { text-align: center; }
+.hidden { display: none !important; }
+.mt { margin-top: 16px; }
+.mb { margin-bottom: 16px; }
+.row-inline { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.pill-toggle { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1px solid var(--linia); border-radius: 99px; background: #fff; cursor: pointer; font-size: 13px; }
+.pill-toggle.on { background: #eef3ff; border-color: var(--blekit); color: var(--granat); font-weight: 700; }
+
+/* =========================================================================
+   OFERTA PDF (tryb B) — arkusz do druku, A4, marginesy ~18 mm
+   ========================================================================= */
+.oferta {
+  background: #fff; color: var(--tekst); font-family: var(--sans);
+  max-width: 210mm; margin: 0 auto; padding: 18mm;
+}
+.oferta h1, .oferta h2, .oferta h3 { color: var(--granat); }
+.oferta .of-head { display: flex; align-items: flex-start; gap: 16px; border-bottom: 3px solid var(--granat); padding-bottom: 14px; }
+.oferta .of-head .logo-mark { width: 52px; height: 52px; }
+.oferta .of-title { flex: 1; }
+.oferta .of-title h1 { margin: 0; font-size: 24px; }
+.oferta .of-meta { text-align: right; font-size: 12px; color: var(--muted); }
+.oferta .of-section { margin-top: 18px; }
+.oferta .of-section > h2 { font-size: 15px; margin: 0 0 8px; border-left: 4px solid var(--blekit); padding-left: 8px; }
+.oferta .of-two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.oferta .of-box { background: var(--panel); border: 1px solid var(--linia); border-radius: 8px; padding: 12px; font-size: 13px; }
+.oferta table.of-tbl { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 6px; }
+.oferta table.of-tbl th, .oferta table.of-tbl td { padding: 7px 8px; border-bottom: 1px solid var(--linia); text-align: left; }
+.oferta table.of-tbl th { background: var(--panel); color: var(--granat); }
+.oferta table.of-tbl td.num, .oferta table.of-tbl th.num { text-align: right; white-space: nowrap; }
+.oferta .of-sum { margin-top: 10px; margin-left: auto; width: 300px; }
+.oferta .of-sum .l { display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px; }
+.oferta .of-sum .l.brutto { border-top: 2px solid var(--granat); margin-top: 4px; padding-top: 8px; font-weight: 700; font-size: 16px; }
+.oferta ul.of-list { margin: 6px 0 0; padding-left: 18px; font-size: 12.5px; }
+.oferta ul.of-list li { margin-bottom: 3px; }
+.oferta .of-footer { margin-top: 22px; border-top: 1px solid var(--linia); padding-top: 10px; font-size: 11.5px; color: var(--muted); text-align: center; }
+.oferta .of-note { font-size: 11px; color: var(--muted); font-style: italic; margin-top: 6px; }
+
+/* --- Druk --- */
+@page { size: A4; margin: 18mm; }
+@media print {
+  body { background: #fff; }
+  .no-print { display: none !important; }
+  .oferta { box-shadow: none; margin: 0; padding: 0; max-width: none; }
+  .oferta .of-section { page-break-inside: avoid; }
+  .oferta table.of-tbl tr { page-break-inside: avoid; }
+}

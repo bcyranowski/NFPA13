@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel wycen — TOM-KA Instalacje Sanitarne</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="stylesheet" href="assets/styles.css">
+  <style>
+    /* nawigacja zakładek panelu */
+    .tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+    .tab { padding: 9px 14px; border-radius: 9px; border: 1px solid var(--linia); background: #fff; cursor: pointer; font-weight: 700; font-size: 14px; color: var(--muted); }
+    .tab.active { background: var(--granat); color: #fff; border-color: var(--granat); }
+    .catalog-picker { position: relative; }
+    .catalog-list { border: 1px solid var(--linia); border-radius: 9px; max-height: 260px; overflow: auto; margin-top: 6px; }
+    .catalog-item { padding: 9px 12px; cursor: pointer; border-bottom: 1px solid var(--panel); }
+    .catalog-item:hover { background: var(--panel); }
+    .poz-row td { border-bottom: 1px solid var(--linia); padding: 8px 6px; vertical-align: top; }
+    .poz-row input { padding: 7px 8px; }
+    /* nakładka podglądu oferty */
+    #oferta-overlay { position: fixed; inset: 0; background: #e9eef7; overflow: auto; z-index: 50; }
+    .oferta-toolbar { position: sticky; top: 0; background: var(--granat); color: #fff; padding: 10px 16px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .oferta-toolbar .spacer { flex: 1; }
+    #oferta-overlay .oferta { margin: 18px auto; box-shadow: var(--cien); }
+    @media print {
+      .topbar, #panel-app { display: none !important; }
+      .oferta-toolbar { display: none !important; }
+      #oferta-overlay { position: static; background: #fff; overflow: visible; }
+      #oferta-overlay .oferta { margin: 0; box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar no-print">
+    <div class="topbar-inner">
+      <a class="brand" href="panel.html" id="brand"></a>
+      <span class="spacer"></span>
+      <a class="link" href="index.html">Kalkulator publiczny →</a>
+      <a class="link" href="#" id="logout" style="display:none">Wyloguj</a>
+    </div>
+  </header>
+
+  <main class="wrap" id="panel-app"></main>
+  <div id="oferta-overlay" class="hidden"></div>
+
+  <script src="cennik.js"></script>
+  <script src="assets/shared.js"></script>
+  <script src="assets/calc.js"></script>
+  <script src="assets/panel.js"></script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kalkulator wyceny — TOM-KA Instalacje Sanitarne</title>
+  <meta name="description" content="Szybka orientacyjna wycena przeglądów, pomiarów i instalacji technicznych. TOM-KA Instalacje Sanitarne.">
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="index.html" id="brand"></a>
+      <span class="spacer"></span>
+      <a class="link" href="panel.html">Panel wewnętrzny →</a>
+    </div>
+  </header>
+
+  <main class="wrap wrap-narrow" id="app">
+    <div class="progress no-print" aria-hidden="true">
+      <span class="label" id="progress-label">Krok 1 z 7</span>
+      <div class="bar"><span id="progress-bar" style="width:14%"></span></div>
+    </div>
+
+    <div class="card" id="step-card">
+      <div id="step-content" role="group" aria-live="polite"></div>
+      <div class="actions no-print" id="step-actions"></div>
+    </div>
+
+    <p class="small muted center mt">
+      Wycena orientacyjna · bez zakładania konta · Twoje dane wykorzystujemy wyłącznie do przygotowania oferty.
+    </p>
+  </main>
+
+  <script src="cennik.js"></script>
+  <script src="assets/shared.js"></script>
+  <script src="assets/calc.js"></script>
+  <script src="assets/public.js"></script>
+</body>
+</html>
