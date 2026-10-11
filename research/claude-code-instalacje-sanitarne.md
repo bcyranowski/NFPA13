@@ -449,3 +449,149 @@ Orkiestrator ──┼─ Agent przedmiaru (fakty → items.json, braki)
 | Ograniczenia | trudniejsze debugowanie; błąd jednego agenta propaguje się — konieczny agent QA i kontrakty danych (JSON schema) między agentami |
 | Automatyzacja | półautomatyczny proces od dokumentacji do oferty; człowiek zatwierdza bramki: mapowanie warstw, skala, interpretacje, ceny |
 | Rekomendacja | dopiero gdy B działa stabilnie na 3–5 projektach. Twój orkiestrator już jest szkieletem C — wystarczy uruchamiać etapy jako subagenci i dodać agenta QA |
+
+---
+
+## 10. Przykładowy workflow: folder projektu → zweryfikowany przedmiar i raport
+
+### 10.1 Wejście i struktura katalogów
+
+```
+Projekt_X/
+├─ 00_wejscie/                      ← nie modyfikować (tylko odczyt)
+│  ├─ W_projekt_wentylacji.pdf
+│  ├─ IS_instalacje.dwg
+│  ├─ Opis_techniczny.docx
+│  ├─ Przedmiar.xlsx
+│  └─ STWiOR.pdf
+├─ 10_ekstrakcja/                   ← generowane skryptami
+│  ├─ IS_instalacje.dxf
+│  ├─ pdf_words.jsonl  pdf_paths.jsonl  docx_paras.jsonl  xlsx_cells.jsonl
+│  └─ facts.jsonl                   ← rejestr faktów ze źródłami
+├─ 20_wyniki/
+│  ├─ 1_Przedmiar_zweryfikowany.xlsx
+│  ├─ 2_Zestawienie_materialow.xlsx
+│  ├─ 3_Brakujace_pozycje.xlsx
+│  ├─ 4_Rozbieznosci.xlsx
+│  ├─ 5_Ryzyka_kosztowe.xlsx
+│  ├─ 6_Optymalizacje.md
+│  ├─ 7_Pytania_do_projektanta.docx
+│  └─ kontrola_W_projekt.pdf        ← nakładka: co policzono i skąd
+├─ CLAUDE.md                        ← reguły projektu
+└─ .claude/
+   ├─ settings.json                 ← hooki walidacyjne
+   └─ skills/ (lub skille osobiste ~/.claude/skills/)
+```
+
+### 10.2 Etapy, narzędzia, bramki kontrolne
+
+| Etap | Co robi | Narzędzie | Bramka człowieka |
+|---|---|---|---|
+| 1. Rekonesans | lista plików, typy, rewizje, branże; brakujące dokumenty | Claude + Python | — |
+| 2. Ingest | DWG→DXF (LibreDWG/ODA); PDF → słowa+ścieżki (PyMuPDF); DOCX → akapity; XLSX → komórki | skrypty `ingest_*.py` | — |
+| 3. Kalibracja | mapowanie warstw DXF → instalacje; skala arkuszy PDF; słownik symboli z legendy | Claude proponuje tabelę | **TAK** — akceptujesz mapowanie i skale |
+| 4. Fakty | ilości z DWG (warstwy, bloki), liczniki etykiet z PDF, liczby z opisu, pozycje z przedmiaru → `facts.jsonl` | skrypty + Claude do normalizacji nazw | — |
+| 5. Weryfikacja cytatów | każdy cytat sprawdzany dosłownie w źródle; fakty bez potwierdzenia odrzucone | skrypt `verify_facts.py` | — |
+| 6. Porównanie | przedmiar vs fakty: braki, nadmiary, rozbieżności, błędne jm, duble | skrypt `reconcile.py` | — |
+| 7. Raporty | 7 plików wynikowych; każda liczba z ID faktu | Claude + openpyxl/docx | **TAK** — przegląd rozbieżności > progu |
+| 8. Kosztorys (opcjonalnie) | `items.json` → `.ath` (Twój skill) | `kosztorys-norma-ath` | **TAK** — interpretacje, ceny |
+| 9. Kontrola końcowa | `kontrola-przed-wysylka` + regresja sum | Twój skill + hook | **TAK** |
+
+### 10.3 `CLAUDE.md` projektu (fragment)
+
+```markdown
+# Reguły przedmiaru
+- Ilość bez źródła = BŁĄD. Każda ilość ma ID faktu z facts.jsonl (plik, strona/warstwa, cytat/metoda).
+- Ilości liczą wyłącznie skrypty. Nie szacuj liczby elementów z obrazu strony.
+- Jednostki: rury, kanały [m]; kanały i izolacja [m²]; urządzenia/armatura [szt.]; próby [m] lub [kpl] wg KNR.
+- Wentylacja: m² prostokątne 2(a+b)·L, okrągłe π·d·L; kształtki osobno.
+- Pliki w 00_wejscie są tylko do odczytu.
+- Niepewne → kolumna „pewność”: wysoka/średnia/niska + powód. Rozbicie na DN z etykiet = „średnia”.
+- Na koniec: lista założeń i lista rzeczy do ręcznej weryfikacji.
+```
+
+### 10.4 Hook walidacyjny (fragment `.claude/settings.json`)
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|Bash",
+        "hooks": [
+          { "type": "command",
+            "command": "python \"${CLAUDE_PROJECT_DIR}/.claude/hooks/validate_outputs.py\"",
+            "timeout": 60 }
+        ]
+      }
+    ]
+  }
+}
+```
+`validate_outputs.py` sprawdza: czy każdy wiersz w `20_wyniki/*.xlsx` ma ID faktu; czy `.ath` przechodzi `verify()` (CP1250, suma kontrolna, osierocone zasoby); czy sumy nie zmieniły się bez wpisu w dzienniku decyzji. Kod wyjścia 2 = błąd wraca do Claude, który musi go poprawić ([Hooks](https://code.claude.com/docs/en/hooks)).
+
+### 10.5 Uruchomienie
+
+```bash
+cd Projekt_X
+claude                                   # tryb interaktywny
+> /kosztorys-sanitarny zakres: wentylacja + wod-kan; cel: weryfikacja przedmiaru, bez cen
+
+# lub wsadowo (np. nocą, dla nowej rewizji):
+claude -p "Uruchom /analiza-dokumentacji-is dla 00_wejscie, wyniki do 20_wyniki. Tryb nienadzorowany: założenia wypisz na górze raportu."
+```
+
+---
+
+## 11. Rzetelność i ograniczenia
+
+### 11.1 Klasyfikacja kluczowych funkcji
+
+| Funkcja | Status | Uzasadnienie |
+|---|---|---|
+| Odczyt tekstu z PDF wektorowego, DOCX, XLSX | 🟢 | biblioteki dojrzałe; AECV-Bench: zadania tekstowe do ~0,95 |
+| Ekstrakcja tabel z PDF tekstowego | 🟢 | pdfplumber/Docling |
+| Ekstrakcja tabel narysowanych liniami CAD | 🟡 | trzeba grupować słowa po współrzędnych |
+| OCR skanów (tekst) | 🟡 | błędy w znakach typu Ø/0, O/0, 1/l — krytyczne dla średnic |
+| Długości z DXF (trasy osiowe, warstwy) | 🟢 | Twoja praktyka + ezdxf |
+| Rozbicie długości na średnice z etykiet | 🟡 | orientacyjne (Twoje wnioski) |
+| Zliczanie bloków DWG | 🟢 | deterministyczne; ryzyko: bloki-odnośniki |
+| Kanały prostokątne z DWG rysowane krawędziami | 🟡 | wymaga parowania linii lub etykiet |
+| Długości z PDF wektorowego | 🟡 | brak warstw, skala per rzut |
+| Długości ze skanu | 🔴 | — |
+| Liczenie symboli przez model „wzrokiem” | 🔴 | AECV-Bench: 0,40–0,55 |
+| Liczenie symboli przez wytrenowany detektor (YOLO) | 🟡 | wymaga setek oznaczonych przykładów Twoich symboli; brak gotowych modeli HVAC |
+| Generowanie `.ath` | 🟢 / 🔴 | 🟢 u Ciebie (działa z Kobrą); 🔴 brak publicznej specyfikacji |
+| Import Excel → Norma natywnie | 🔴 | niepotwierdzony w źródłach publicznych |
+| Sterowanie AutoCAD przez MCP | 🟡 | projekty społecznościowe, Windows |
+| Wykrywanie rozbieżności z cytowaniem źródeł | 🟢/🟡 | 🟢 dla tekstu i DWG; 🟡 gdy ilość z rysunku PDF |
+| Powtarzalność wyników | 🟢 gdy liczą skrypty / 🔴 gdy liczy model | patrz 11.3 |
+
+### 11.2 Ryzyka i zabezpieczenia
+
+| Ryzyko | Przykład | Zabezpieczenie |
+|---|---|---|
+| **Halucynowanie ilości** | model „uzupełnia” brakującą ilość „typową” wartością | reguła w `CLAUDE.md` + hook: ilość bez ID faktu = błąd; braki jako `brak`, nie liczba |
+| **Błędna skala** | rzut 1:50 na arkuszu z opisem 1:100; PDF wydrukowany „dopasuj do strony” | kalibracja na znanym wymiarze na każdym rzucie; skala jako fakt z akceptacją |
+| **Błędna interpretacja symboli** | ten sam symbol dla przepustnicy i klapy u różnych projektantów | słownik z legendy danego projektu (nie ogólny); akceptacja |
+| **Błędne średnice** | OCR `Ø11O`, etykieta innej instalacji najbliżej odcinka | filtr dopuszczalnych DN per instalacja; maks. odległość etykiety; „pewność średnia” |
+| **Pomijanie elementów** | wpusty na rysunku architektury, nie w IS (Twój przypadek) | checklista elementów per instalacja; „nie znaleziono w modelu” ≠ 0 |
+| **Podwójne liczenie** | detal powiększony w tym samym modelu; komplet + elementy pojedyncze | wykluczenie obszarów detali; zasada „zeruj z opisem w `uw`, nie usuwaj” (Twoja) |
+| **Warstwy CAD** | xref architektury z liniami „PPOŻ pasy” = setki fałszywych metrów | lista warstw z długościami do akceptacji przed obmiarem |
+| **Jednostki rysunkowe** | `$INSUNITS` mm vs m; ezdxf go ignoruje | test sensowności (znany wymiar) |
+| **XREF** | podkłady niezbindowane — brak elementów; zbindowane — śmieci | `is_xref`, prefiksy warstw; poproś o czysty model IS |
+| **Rozbieżności między rewizjami** | liczysz z rev.B, przedmiar z rev.A | rewizja w każdym fakcie; ostrzeżenie przy mieszaniu rewizji |
+| **Powtarzalność** | dwa uruchomienia dają różne liczby | liczą skrypty (deterministycznie); model tylko interpretuje; zapis wersji skryptów i wejść (hash plików) |
+
+### 11.3 Mechanizmy kontroli jakości (do wdrożenia)
+
+1. **Źródło przy każdej pozycji** — kolumny: `ID faktu`, `plik`, `strona/warstwa`, `metoda`, `pewność`.
+2. **Weryfikacja cytatów** — dosłowne wyszukanie w źródle; brak = odrzucenie.
+3. **Nakładka kontrolna PDF** — wszystko, co policzono, zaznaczone na rysunku z numerem.
+4. **Podwójna ścieżka dla kluczowych ilości** — np. liczba klap: bloki DWG vs zestawienie projektanta vs etykiety PDF; zgodność 2 z 3 lub flaga.
+5. **Złoty projekt** — 1–2 zakończone projekty z ręcznie zweryfikowanym przedmiarem jako test regresyjny po każdej zmianie skilli.
+6. **Wskaźniki rozsądności** — porównanie z historycznymi wskaźnikami (sekcja 8, pkt 5–6).
+7. **Hook walidacyjny** — formalne reguły egzekwowane automatycznie, niezależnie od modelu.
+8. **Dziennik decyzji** — każda interpretacja z uzasadnieniem.
+
+**O oszczędnościach czasu:** wszystkie wartości w tym raporcie to oszacowania. Jedyne liczby „z praktyki” pochodzą z Twojego skilla `komparator-ofert-is` (deklaracja 1–2 h → ok. 10 min) i z jednego projektu autora `construction-drawing-analyzer` (13 250 vs 13 600 m²). Rzetelny pomiar: zmierz czas ręczny i z Claude na 2–3 projektach (sugestia w planie 30 dni).
