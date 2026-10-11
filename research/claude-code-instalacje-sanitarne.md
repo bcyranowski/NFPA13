@@ -322,3 +322,130 @@ Każda liczba w raporcie musi pochodzić z **rejestru faktów** (`facts.jsonl`),
 6. **Nakładka PDF** (PyMuPDF): ramki wokół `bbox` z numerem faktu → szybka kontrola wizualna.
 
 Detekcja klas rozbieżności (rozszerzenie Twojego `analiza-dokumentacji-is`): liczności urządzeń; typy/modele (zestawienie vs opis); parametry (wydajność, spręż, moc); średnice (schemat vs rzut); materiały (opis vs STWiOR); granice zakresu („poza zakresem” w opisie vs pozycja w przedmiarze); pozycje bez ilości; elementy na rysunku bez pozycji w przedmiarze.
+
+---
+
+## 7. Skills, MCP i projekty open source
+
+**Zastrzeżenie dot. aktualności:** dla większości repozytoriów strony GitHub pobrane w tym researchu nie pokazywały daty ostatniego commita. Podaję to, co udało się potwierdzić (wersję, datę wydania lub dokumentacji); „brak daty” oznacza, że nie potwierdziłem. Gwiazdki — stan z dnia researchu. Istnienie na GitHubie ≠ gotowość produkcyjna.
+
+| # | Projekt | Link | Funkcjonalność | Aktualność (potwierdzona) | Integracja z Claude Code | Trudność |
+|---|---|---|---|---|---|---|
+| 1 | Anthropic Skills (document-skills) | [github.com/anthropics/skills](https://github.com/anthropics/skills) | skille `xlsx`, `docx`, `pdf`, `pptx` + specyfikacja Agent Skills | aktywne (60 commitów; data niepokazana) | plugin: `/plugin install document-skills@anthropic-agent-skills` | 1 |
+| 2 | autocad-mcp | [github.com/puran-water/autocad-mcp](https://github.com/puran-water/autocad-mcp) | MCP dla AutoCAD LT 2024+ (LISP) + ezdxf headless; encje, warstwy, bloki z atrybutami | v3.1, 557★; brak daty | MCP stdio (uv) | 3 |
+| 3 | OpenTakeoff | [github.com/Kentucky-ai/opentakeoff](https://github.com/Kentucky-ai/opentakeoff) | takeoff z PDF w przeglądarce + 53 narzędzia MCP (skala, długości, liczniki, `symbol_sweep`, porównanie rewizji, XLSX/DXF) | 712 commitów, 304★; licencja AGPL-3.0 (wcześniej Apache-2.0) | `npx -y opentakeoff-mcp` | 2 |
+| 4 | ezdxf | [github.com/mozman/ezdxf](https://github.com/mozman/ezdxf) · [docs](https://ezdxf.readthedocs.io/) | odczyt/zapis DXF, bloki, atrybuty, xref, bbox | 1.4.3 (19.10.2025), docs 1.4.4 (14.05.2026) | biblioteka w skryptach | 2 |
+| 5 | LibreDWG | [github.com/LibreDWG/libredwg](https://github.com/LibreDWG/libredwg) · [manual](https://www.gnu.org/software/libredwg/manual/LibreDWG.html) | DWG→DXF (`dwg2dxf`), r1.2–r2018 | manual 0.13.4 (III 2026), man `dwg2dxf` 0.14 (VI 2026) | CLI | 3 (kompilacja) |
+| 6 | ODA File Converter | [opendesign.com](https://www.opendesign.com/guestfiles/oda_file_converter) | DWG↔DXF, wsadowo CLI | produkt utrzymywany (freeware, rejestracja) | CLI / ezdxf `odafc` | 1 |
+| 7 | PyMuPDF | [github.com/pymupdf/PyMuPDF](https://github.com/pymupdf/PyMuPDF) · [rysunki wektorowe](https://pymupdf.readthedocs.io/en/latest/recipes-drawing-and-graphics.html) | tekst ze współrzędnymi, ścieżki wektorowe, render, adnotacje | aktywne | biblioteka (używana w skillu `pdf`) | 2 |
+| 8 | Docling | [github.com/docling-project/docling](https://github.com/docling-project/docling) | PDF/DOCX → Markdown/JSON z dobrą obsługą tabel (wg porównań wtórnych) | brak daty | biblioteka/CLI | 2 |
+| 9 | MarkItDown | [github.com/microsoft/markitdown](https://github.com/microsoft/markitdown) | szybka konwersja DOCX/XLSX/PDF → Markdown; słaba dla tabel w PDF ([porównanie](https://www.file2markdown.ai/blog/docling-vs-markitdown)) | brak daty | biblioteka/CLI | 1 |
+| 10 | excel-mcp-server | [github.com/haris-musa/excel-mcp-server](https://github.com/haris-musa/excel-mcp-server) | XLSX bez Excela (openpyxl) | v0.1.8 wg PyPI; brak daty | `claude mcp add excel-mcp-server -- uvx excel-mcp-server` | 1 |
+| 11 | mcp-server-excel (ExcelMcp) | [github.com/sbroenne/mcp-server-excel](https://github.com/sbroenne/mcp-server-excel) | Excel przez COM: Power Query, DAX, VBA, pivoty | NuGet 1.8.55 | .NET tool, Windows | 2 |
+| 12 | mcp-server-xlwings | [katalog](https://claudemarketplaces.com/mcp/geniuskey/mcp-server-xlwings) | otwarty Excel przez xlwings/COM, makra | brak daty | uvx, Windows | 2 |
+| 13 | YOLOplan | [github.com/DynMEP/YOLOplan](https://github.com/DynMEP/YOLOplan) | YOLO11: wykrywanie i liczenie symboli MEP na PDF/obrazach, trening własny, eksport CSV/XLSX | v1.1.0 (X 2025), 25★, brak release’ów; **brak modelu HVAC/wod-kan** | Python | 4–5 |
+| 14 | PID_Symbol_Detection | [github.com/mgupta70/PID_Symbol_Detection](https://github.com/mgupta70/PID_Symbol_Detection) | półnadzorowane wykrywanie symboli na P&ID (artykuł Automation in Construction 2024) | 54★ | Python, wymaga własnych danych | 5 |
+| 15 | construction-drawing-analyzer | [github.com/hamzaabduljabbar/construction-drawing-analyzer](https://github.com/hamzaabduljabbar/construction-drawing-analyzer) | skill Claude: indeks arkuszy, legendy → biblioteka symboli, odsyłacze, powierzchnie; autor: 13 250 vs 13 600 m² (1 projekt) | **zarchiwizowane 25.08.2026** | skill | 2 — jako wzorzec architektury |
+| 16 | IfcOpenShell (+ ifcmcp) | [github.com/IfcOpenShell/IfcOpenShell](https://github.com/IfcOpenShell/IfcOpenShell) | odczyt IFC: rury, kanały, armatura z właściwościami | aktywne; `ifcmcp` w gałęzi/katalogu `src/ifcmcp` (2026) | biblioteka / MCP | 3 |
+| 17 | fluids | [github.com/CalebBell/fluids](https://github.com/CalebBell/fluids) · [docs](https://fluids.readthedocs.io/) | tarcie, Δp, kształtki (Crane TP-410), pompy; MIT | 1.3.x | biblioteka | 2 |
+| 18 | CoolProp | [github.com/CoolProp/CoolProp](https://github.com/CoolProp/CoolProp) | właściwości płynów (woda, glikol, powietrze, czynniki) | aktywne | `pip install coolprop` | 2 |
+| 19 | hvac_pressure | [PyPI](https://pypi.org/project/hvac-pressure/) | Δp w kanałach: Darcy–Weisbach + współczynniki ASHRAE 2009 | wczesne wersje 0.1.x | biblioteka | 2 |
+| 20 | diff-pdf / diff-pdf-visually | [diff-pdf](https://vslavik.github.io/diff-pdf/) · [diff-pdf-visually](https://github.com/bgeron/diff-pdf-visually) | wizualne porównanie rewizji PDF | diff-pdf „as-is”, nierozwijany | CLI | 1 |
+| 21 | Codemod3/CAD-MCP | [github.com/Codemod3/CAD-MCP](https://github.com/Codemod3/CAD-MCP) | MCP ezdxf: warstwy, encje, teksty, wymiary, bloki; DWG przez ODA | 1★, 4 commity | `claude mcp add cad -- uvx --from git+https://github.com/Codemod3/cad-mcp cad-mcp` | 2 (eksperyment) |
+| 22 | AECV-Bench | [github.com/AECFoundry/AECV-Bench](https://github.com/AECFoundry/AECV-Bench) · [arXiv](https://arxiv.org/abs/2601.04819) | benchmark rozumienia rysunków przez modele multimodalne | I 2026 | — (źródło wiedzy o ograniczeniach) | — |
+
+Dodatkowo (niezweryfikowane bezpośrednio, tylko katalogi MCP): `Porta048/AutoCad-MCP`, `multiCAD-mcp` (AnCode666), `lambdacad-mcp` (Psalmustrack, BricsCAD), `blackmount-construction-mcp` (48 narzędzi „estimating”, opis marketingowy — [katalog](https://claudemarketplaces.com/mcp/blackmount-ai/blackmount-construction-mcp)). Przegląd MCP dla CAD: [Snyk](https://snyk.io/articles/9-mcp-servers-for-computer-aided-drafting-cad-with-ai/), [Cadalyst](https://blog.cadalyst.com/architecture-infrastructure-construction-solutions/mcp-a-new-standard-for-connecting-ai-to-aec-software).
+
+**Czego nie znalazłem:** gotowego, otwartego narzędzia do przedmiaru **HVAC/wod-kan z DWG** (Twój skill jest bardziej zaawansowany niż publiczne projekty), gotowego narzędzia do porównania rewizji DXF, relacji użytkowników Reddit o Claude Code w przedmiarach MEP (wyszukiwanie zwróciło głównie ogłoszenia freelancerów), publicznej specyfikacji `.ath`.
+
+---
+
+## 8. Nieoczywiste zastosowania (18)
+
+| # | Zastosowanie | Jak | Status |
+|---|---|---|---|
+| 1 | **Raport „co zmiana rewizji kosztuje”** | diff ilości DWG/przedmiaru rev.A vs rev.B × ceny z Twojego `.ath` → lista zmian z kwotą; gotowe do roszczeń/aneksów | 🟡 |
+| 2 | **Wykrywanie „cichych” zmian w rewizji PDF** | diff tekstu po stronach + diff-pdf wizualnie → strony ze zmianą, których nie oznaczono chmurką | 🟢 |
+| 3 | **Dziennik decyzji kosztorysowych** | każda decyzja (zerowanie dubla, przyjęta interpretacja) zapisywana w JSON + uzasadnienie → przy rozliczeniu wiesz, dlaczego | 🟢 |
+| 4 | **Baza cen historycznych z Twoich ofert** | ekstrakcja cen z archiwalnych ofert PDF/XLSX → tabela (materiał, DN, data, dostawca) → podpowiedź ceny i wykrywanie odstających | 🟢 |
+| 5 | **Wskaźniki ilościowe z archiwum** (m rur/m² PU, kształtki % długości kanałów, m² izolacji/m kanału) | z Twoich zakończonych kosztorysów → wskaźniki do szybkiej kontroli nowych przedmiarów | 🟢 |
+| 6 | **Kontrola „rozsądności” przedmiaru wskaźnikami** | nowy przedmiar vs wskaźniki z pkt 5 → sygnał, gdy np. kanałów jest 3× mniej niż typowo | 🟢 |
+| 7 | **Mapowanie STWiOR → pozycje przedmiaru** | każdy wymóg STWiOR (np. próby, dezynfekcja) musi mieć pozycję lub uwagę „w cenie” | 🟢 |
+| 8 | **Automatyczny „ślepak” dla podwykonawcy z Twojego `.ath`** | eksport pozycji bez cen do XLSX z blokadą kolumn ilości | 🟢 |
+| 9 | **Normalizacja ofert z nazwami handlowymi** | rozpoznanie równoważności (producent/typ) i flagowanie zamienników niespełniających parametrów STWiOR | 🟡 |
+| 10 | **Weryfikacja doboru urządzeń z kart katalogowych** | z karty PDF: wydajność/spręż/moc → porównanie z zestawieniem projektu | 🟡 |
+| 11 | **Obliczenia kontrolne prędkości w kanałach z przedmiaru** | wymiar kanału + przepływ ze schematu → v; >dopuszczalnej → sygnał hałasu/zmiany kosztu | 🟡 |
+| 12 | **Bilans wody/ścieków kontrolnie** | liczba przyborów z DWG → przepływ obliczeniowy wg przyjętej metody → porównanie z DN przyłącza | 🟡 (metoda normowa do zaprogramowania i zweryfikowania) |
+| 13 | **Dokumentacja pomiarowa z telefonu** | zdjęcia protokołów/wskazań → OCR + Twoja weryfikacja → protokół DOCX | 🟡 |
+| 14 | **Harmonogram rzeczowo-finansowy z kosztorysu** | działy `.ath` × założone tempo → XLSX/MS Project | 🟢 |
+| 15 | **Codzienny raport IS z maili/dokumentów** (masz skill `codzienny-raport-is`) | Routine/scheduled task — raport rano | 🟢 |
+| 16 | **Lista materiałów do zamówienia z podziałem na etapy** | przedmiar + harmonogram → zamówienia per etap, z zapasem | 🟢 |
+| 17 | **Kontrola przejść ppoż** | przecięcia tras (DWG) z liniami ścian/stropów oddzielenia ppoż (jeśli są na osobnej warstwie) → liczba przejść i średnice → pozycje kosztowe, często pomijane | 🟡 |
+| 18 | **Aplikacje HTML dla ekipy** | kalkulator izolacji, przelicznik kanałów, checklisty odbiorowe — jeden plik HTML działający offline na telefonie | 🟢 |
+
+---
+
+## 9. Architektura — trzy warianty
+
+### Wariant A — prosty (Claude Code + pliki + gotowe skille)
+
+```
+Folder projektu ─► Claude Code (Desktop/terminal) ─► skille: xlsx, docx, pdf (+ Twoje IS)
+                                               └─► Excel/DOCX/MD z wynikami
+```
+
+| Cecha | Opis |
+|---|---|
+| Narzędzia | Claude Code, Python (skille i tak go używają), skille Anthropic + Twoje, `CLAUDE.md` z regułami |
+| Koszt | subskrypcja Claude (sprawdź [aktualny cennik](https://claude.com/pricing)); oprogramowanie darmowe |
+| Czas wdrożenia | 1–3 dni |
+| Kompetencje | opis procedur słowami; podstawy obsługi terminala/aplikacji Desktop |
+| Ograniczenia | ilości z rysunków tylko z tekstu/zestawień; brak systemu cytowań; wyniki mniej powtarzalne |
+| Automatyzacja | streszczenia, rozbieżności opisowe, porządkowanie Excela, RFQ, protokoły |
+| Rekomendacja | start i praca z dokumentami tekstowymi |
+
+### Wariant B — średniozaawansowany (Python + PDF/CAD + Excel + MCP)
+
+```
+                      ┌─ ingest/  (DWG→DXF, PDF→tekst+wektory, DOCX→tekst, XLSX→tabele)
+Folder projektu ─► skrypty ┤
+                      ├─ facts.jsonl (rejestr faktów ze źródłami)
+                      └─ items.json / prices.json
+                                │
+              Claude Code + skille IS (orkiestrator) ─► raporty, .ath, XLSX
+                                │
+              hooks (walidacja) │ MCP opcjonalnie: AutoCAD (podgląd), Excel COM
+```
+
+| Cecha | Opis |
+|---|---|
+| Narzędzia | PyMuPDF, pdfplumber, ezdxf, LibreDWG/ODA, pandas, openpyxl; opcjonalnie `autocad-mcp`, `mcp-server-excel` |
+| Koszt | j.w. + czas własny; licencje CAD/Excel już posiadane |
+| Czas wdrożenia | 2–6 tygodni (Ty masz już większość — realnie 1–2 tygodnie na domknięcie luk) |
+| Kompetencje | czytanie prostego Pythona, umiejętność testowania na znanym projekcie |
+| Ograniczenia | PDF bez warstw; kształtki i klapy z PDF półręcznie; jakość zależy od dyscypliny warstw projektanta |
+| Automatyzacja | obmiar DWG, liczniki etykiet z PDF, audyt przedmiaru, rozbieżności z cytatami, `.ath` |
+| Rekomendacja | **docelowy wariant dla Ciebie** |
+
+### Wariant C — wieloagentowy
+
+```
+               ┌─ Agent dokumentacji (DOCX/PDF/STWiOR → fakty)
+               ├─ Agent CAD (DWG/DXF → ilości, warstwy, bloki)
+Orkiestrator ──┼─ Agent przedmiaru (fakty → items.json, braki)
+(skill         ├─ Agent kosztorysu (items → .ath, KNR, ceny)
+ kosztorys-    ├─ Agent QA (cytowania, duble, jm, wskaźniki, regresja)
+ sanitarny)    └─ Agent optymalizacji (zamienniki, warianty, Δkoszt)
+                         ▼
+             Pakiet ofertowy + raport + pytania do projektanta
+```
+
+| Cecha | Opis |
+|---|---|
+| Narzędzia | Wariant B + subagenci (`.claude/agents/*.md`) lub skille z `context: fork`; opcjonalnie Agent SDK |
+| Koszt | wyższe zużycie limitów (wielu agentów równolegle) |
+| Czas wdrożenia | 1–3 miesiące do stabilności |
+| Kompetencje | jak B + projektowanie testów (zestaw „złotych” projektów z znanym wynikiem) |
+| Ograniczenia | trudniejsze debugowanie; błąd jednego agenta propaguje się — konieczny agent QA i kontrakty danych (JSON schema) między agentami |
+| Automatyzacja | półautomatyczny proces od dokumentacji do oferty; człowiek zatwierdza bramki: mapowanie warstw, skala, interpretacje, ceny |
+| Rekomendacja | dopiero gdy B działa stabilnie na 3–5 projektach. Twój orkiestrator już jest szkieletem C — wystarczy uruchamiać etapy jako subagenci i dodać agenta QA |
