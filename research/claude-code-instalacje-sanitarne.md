@@ -595,3 +595,212 @@ claude -p "Uruchom /analiza-dokumentacji-is dla 00_wejscie, wyniki do 20_wyniki.
 8. **Dziennik decyzji** — każda interpretacja z uzasadnieniem.
 
 **O oszczędnościach czasu:** wszystkie wartości w tym raporcie to oszacowania. Jedyne liczby „z praktyki” pochodzą z Twojego skilla `komparator-ofert-is` (deklaracja 1–2 h → ok. 10 min) i z jednego projektu autora `construction-drawing-analyzer` (13 250 vs 13 600 m²). Rzetelny pomiar: zmierz czas ręczny i z Claude na 2–3 projektach (sugestia w planie 30 dni).
+
+---
+
+## 12. Ranking 20 zastosowań
+
+Skala 1–10. **Oszcz.** = potencjalna oszczędność czasu (*szac.*), **Łatw.** = łatwość wdrożenia, **Wiar.** = wiarygodność wyników, **Przyd.** = przydatność w codziennej pracy, **Got.** = dostępność gotowych narzędzi (w tym Twoich skilli).
+
+| Miejsce | Zastosowanie | Oszcz. | Łatw. | Wiar. | Przyd. | Got. | Suma |
+|---|---|---|---|---|---|---|---|
+| 1 | Audyt przedmiaru Excel (jm, duble, puste, sumy, struktura) | 8 | 9 | 9 | 10 | 8 | **44** |
+| 2 | Porównanie ofert podwykonawców | 8 | 9 | 8 | 9 | 9 | **43** |
+| 3 | Karta zakresu z opisu/STWiOR (wymagania z cytatem) | 6 | 10 | 8 | 9 | 9 | **42** |
+| 4 | Obmiar z DWG: długości po warstwach + bloki | 9 | 6 | 8 | 9 | 8 | **40** |
+| 5 | Ekstrakcja zestawień urządzeń z PDF | 7 | 8 | 8 | 9 | 8 | **40** |
+| 6 | Rejestr dokumentacji (tabliczki, rewizje, braki) | 6 | 9 | 9 | 8 | 8 | **40** |
+| 7 | Pytania do projektanta z odnośnikami | 6 | 9 | 8 | 9 | 8 | **40** |
+| 8 | Zapytania ofertowe (RFQ) z przedmiaru | 6 | 9 | 8 | 8 | 8 | **39** |
+| 9 | Seryjne protokoły (próby, płukanie, odbiory) | 6 | 9 | 9 | 7 | 8 | **39** |
+| 10 | Krzyżowa kontrola opis ↔ rysunek ↔ przedmiar z cytatami | 8 | 6 | 8 | 10 | 5 | **37** |
+| 11 | Generowanie/edycja `.ath` (KNR, ceny, audyt) | 8 | 5 | 8 | 9 | 7 | **37** |
+| 12 | Checklista brakujących pozycji | 7 | 8 | 7 | 9 | 5 | **36** |
+| 13 | Liczniki etykiet z PDF wektorowego | 7 | 7 | 7 | 8 | 6 | **35** |
+| 14 | Porównanie rewizji → raport zmian kosztowych | 8 | 6 | 7 | 8 | 5 | **34** |
+| 15 | Baza cen historycznych z archiwalnych ofert | 6 | 6 | 8 | 8 | 5 | **33** |
+| 16 | Kalkulatory hydrauliczne (Δp, v) | 4 | 7 | 8 | 6 | 8 | **33** |
+| 17 | Raport ryzyk kosztowych | 5 | 8 | 6 | 8 | 5 | **32** |
+| 18 | Wskaźniki ilościowe z archiwum + kontrola rozsądności | 6 | 6 | 7 | 8 | 4 | **31** |
+| 19 | Kanały wentylacyjne z DWG (m, m², podział Ø/□) | 8 | 4 | 6 | 8 | 3 | **29** |
+| 20 | Długości z PDF wektorowego | 7 | 3 | 5 | 8 | 4 | **27** |
+
+Pozycje 2, 4 i 11 już masz (Twoje skille). Dlatego TOP 5 „do wdrożenia jako pierwsze” wybieram spośród tego, czego **jeszcze nie masz**, przy największej sumie i najmniejszym nakładzie.
+
+---
+
+## 13. TOP 5 — do wdrożenia jako pierwsze
+
+### TOP 1. Audyt przedmiaru Excel (`/audyt-przedmiaru`)
+
+| | |
+|---|---|
+| **Co robi** | czyta wszystkie arkusze przedmiaru/kosztorysu; sprawdza: jm vs typ elementu, duplikaty (ta sama nazwa+wymiar w kilku miejscach), komplet vs elementy, puste/zerowe ilości, „wg projektu”, ilości ułamkowe przy sztukach, sumy działów, spójność numeracji; raport z kolorowaniem w kopii pliku + arkusz „Uwagi” |
+| **Instalacja** | Python + pandas + openpyxl (masz w skillu `xlsx`) |
+| **Własny skill** | **tak** — prosty: `SKILL.md` + `scripts/audit.py` + `rules.yaml` (słownik jm i reguł) |
+| **MCP** | nie |
+| **Dane wejściowe** | XLSX/XLS przedmiaru; dla `.xls` konwersja przez LibreOffice/pandas |
+| **Uruchomienie** | `/audyt-przedmiaru 00_wejscie/Przedmiar.xlsx` |
+| **Weryfikacja** | uruchom na 2 przedmiarach, w których **znasz** błędy; zasiej 10 błędów celowo (zła jm, dubel, brak ilości) i sprawdź, ile wykryje |
+| **Efekt** | `Przedmiar_audyt.xlsx` (oryginał nienaruszony) + lista uwag z adresami komórek |
+
+### TOP 2. Karta zakresu i rejestr dokumentacji (`/karta-zakresu`)
+
+| | |
+|---|---|
+| **Co robi** | inwentaryzuje folder (tabliczki: nr, tytuł, rewizja, skala), wyciąga z opisu i STWiOR wymagania kosztotwórcze (materiały, klasy, izolacje, próby, rozruchy, granice zakresu) z **cytatem i numerem strony** |
+| **Instalacja** | PyMuPDF, python-docx (lub MarkItDown/Docling) |
+| **Własny skill** | tak (lub rozszerzenie `analiza-dokumentacji-is` o zakładkę „Karta zakresu”) |
+| **MCP** | nie |
+| **Dane wejściowe** | folder projektu; PDF najlepiej wektorowe; skany → OCR (skill `pdf`) |
+| **Uruchomienie** | `/karta-zakresu 00_wejscie` |
+| **Weryfikacja** | skrypt sprawdza dosłowne występowanie cytatów; Ty przeglądasz 10 losowych wymagań |
+| **Efekt** | `Rejestr_dokumentacji.xlsx` + `Karta_zakresu.xlsx` (wymaganie, cytat, plik, strona, wpływ na koszt) |
+
+### TOP 3. Rejestr faktów + raport rozbieżności z cytatami (rozszerzenie `analiza-dokumentacji-is`)
+
+| | |
+|---|---|
+| **Co robi** | buduje `facts.jsonl` (sekcja 6) z opisu, przedmiaru, zestawień, DWG i etykiet PDF; porównuje liczności i parametry; generuje raport w formacie „12 / 10 / 8” z lokalizacją źródeł i pytaniem |
+| **Instalacja** | jak TOP 1–2 + ezdxf (masz w `obmiar-z-dwg`) |
+| **Własny skill** | modyfikacja istniejącego: dodaj skrypty `facts_*.py`, `verify_facts.py`, `reconcile.py` |
+| **MCP** | nie |
+| **Dane wejściowe** | komplet dokumentacji; DWG jeśli dostępny |
+| **Uruchomienie** | `/analiza-dokumentacji-is` (skill sam wywoła ekstrakcję) |
+| **Weryfikacja** | złoty projekt: znane rozbieżności muszą zostać wykryte; każda pozycja raportu musi mieć ≥2 ID faktów |
+| **Efekt** | zakładka „Rozbieżności” z kolumnami źródeł + nakładka PDF |
+
+### TOP 4. Liczniki i zestawienia z PDF wektorowego (`/pdf-liczniki`)
+
+| | |
+|---|---|
+| **Co robi** | wyciąga zestawienia urządzeń (tabele) i liczy etykiety (np. `N1`, `W2`, `KPP`, `400x200`, `Ø250`) per arkusz z deduplikacją; dla wentylacji: lista wymiarów kanałów i podział Ø/□; opcjonalnie długości ścieżek wybranego koloru/grubości po kalibracji skali |
+| **Instalacja** | PyMuPDF, pdfplumber |
+| **Własny skill** | tak |
+| **MCP** | nie (opcjonalnie OpenTakeoff MCP do interaktywnej kontroli pomiarów) |
+| **Dane wejściowe** | PDF **wektorowy** (sprawdź: czy da się zaznaczyć tekst); legenda; dla długości — znany wymiar do kalibracji |
+| **Uruchomienie** | `/pdf-liczniki W_projekt_wentylacji.pdf --wzorce "N\d+|W\d+|KPP"` |
+| **Weryfikacja** | nakładka PDF z zaznaczonymi trafieniami; porównanie z zestawieniem projektanta |
+| **Efekt** | XLSX: oznaczenie, liczba, strony, współrzędne; nakładka kontrolna PDF |
+
+### TOP 5. Porównanie rewizji z wyceną zmian (`/zmiany-rewizji`)
+
+| | |
+|---|---|
+| **Co robi** | rev.A vs rev.B: diff tekstu PDF po stronach, diff wizualny (diff-pdf), diff ilości DXF (warstwy/bloki/DN), diff przedmiarów → raport zmian × ceny z Twojego `.ath` |
+| **Instalacja** | PyMuPDF, diff-pdf lub diff-pdf-visually, ezdxf, LibreDWG |
+| **Własny skill** | tak |
+| **MCP** | nie |
+| **Dane wejściowe** | dwie wersje dokumentacji w osobnych folderach; kosztorys bazowy |
+| **Uruchomienie** | `/zmiany-rewizji revA/ revB/ --kosztorys baza.ath` |
+| **Weryfikacja** | test na rewizji z znanymi zmianami (z listy zmian projektanta) |
+| **Efekt** | `Zmiany_rewizji.xlsx`: element, Δ ilość, Δ koszt, źródło A/B, strony z niezaznaczonymi zmianami |
+
+---
+
+## 14. Plan wdrożenia — 30 dni
+
+**Zasada:** każdy tydzień kończy się działającym narzędziem użytym na prawdziwym projekcie. Nie budujemy systemu, który można zastąpić skryptem.
+
+### Tydzień 1 — Excel (priorytet 1)
+| Dzień | Zadanie | Wynik |
+|---|---|---|
+| 1 | Wybierz „złoty projekt” (zakończony, z ręcznie sprawdzonym przedmiarem). Zmierz, ile trwa ręczny audyt przedmiaru | baseline czasu |
+| 2–3 | Spisz `rules.yaml`: jm per typ elementu, wzorce dubli, słowa-flagi („wg projektu”, „kpl”) | słownik reguł |
+| 3–4 | Claude buduje skill `audyt-przedmiaru` (skrypt + SKILL.md); test na złotym projekcie z zasianymi błędami | skill v1 |
+| 5 | `CLAUDE.md` z regułami firmy (sekcja 10.3) w `~/.claude/` | wspólne reguły |
+| 6–7 | Użycie na bieżącym projekcie; poprawki reguł | skill v1.1 + pomiar czasu |
+
+### Tydzień 2 — PDF i DOCX (priorytet 2)
+| Dzień | Zadanie | Wynik |
+|---|---|---|
+| 8–9 | Skill `karta-zakresu`: rejestr dokumentacji + wymagania z cytatami | skill |
+| 10 | Skrypt `verify_facts.py` (dosłowne cytaty) — wspólny dla wszystkich skilli | kontrola cytatów |
+| 11–12 | Skill `pdf-liczniki` (etykiety + tabele); nakładka kontrolna PDF | skill |
+| 13–14 | Test na projekcie wentylacji: lista wymiarów kanałów, liczba nawiewników/klap z etykiet vs zestawienie | raport trafności |
+
+### Tydzień 3 — Weryfikacja przedmiarów (priorytet 3)
+| Dzień | Zadanie | Wynik |
+|---|---|---|
+| 15–16 | `facts.jsonl` + `reconcile.py`; integracja z `analiza-dokumentacji-is` | raport rozbieżności z cytatami |
+| 17 | Checklista brakujących pozycji per instalacja (wod-kan, c.o., went., gaz, ppoż, sieci) | `checklista.yaml` |
+| 18 | Hook `PostToolUse` walidujący wyniki (ID faktu przy każdej ilości) | hook |
+| 19–21 | Pełny przebieg na bieżącym projekcie; pomiar czasu vs tydzień 1 | dane o realnej oszczędności |
+
+### Tydzień 4 — DWG/DXF i agent (priorytety 4–5)
+| Dzień | Zadanie | Wynik |
+|---|---|---|
+| 22 | Zainstaluj ODA File Converter jako alternatywę dla LibreDWG (Windows/Linux) | stabilna konwersja |
+| 23–24 | Rozszerz `obmiar-z-dwg`: tabela warstw do akceptacji, eksport faktów do `facts.jsonl`, raport bloków per kondygnacja | integracja z rejestrem |
+| 25 | (opcjonalnie) `autocad-mcp` na Windows — tylko do podglądu/zaznaczania policzonych elementów | test, decyzja „zostaje/odpada” |
+| 26–27 | Skill `zmiany-rewizji` (PDF + DXF + przedmiar) | skill |
+| 28 | Orkiestrator `kosztorys-sanitarny`: dodaj etapy TOP 1–5 i bramki akceptacji | agent przedmiarowo-kosztorysowy |
+| 29 | Złoty projekt jako test regresyjny całego łańcucha | test |
+| 30 | Podsumowanie: zmierzone czasy, trafność, lista poprawek na kolejny miesiąc | decyzja o Wariancie C |
+
+---
+
+## 15. Odpowiedź końcowa: od jakich trzech automatyzacji bym zaczął?
+
+Gdybym był inżynierem instalacji sanitarnych z Twoim obecnym zestawem skilli, zacząłbym od tych trzech:
+
+1. **Audyt przedmiaru w Excelu** (TOP 1). Robisz to przy każdym projekcie, reguły są proste i deterministyczne, a wynik łatwo sprawdzić. Potrzebny jest jeden skrypt i słownik reguł. Nakład to 2–3 dni, a ryzyko halucynacji jest bliskie zera, bo liczy skrypt, a nie model.
+
+2. **Rejestr faktów z cytatami i raport rozbieżności „opis ↔ rysunek ↔ przedmiar”** (TOP 3, z elementami TOP 2). Rozbudowuje to Twój `analiza-dokumentacji-is` i daje dokładnie raport „12 / 10 / 8” z lokalizacją źródeł. Każda wykryta rozbieżność to realne pieniądze w ofercie albo w roszczeniu, a weryfikacja cytatów skryptem usuwa największą słabość LLM, czyli zmyślone źródła.
+
+3. **Porównanie rewizji z wyceną zmian** (TOP 5). Rewizje przychodzą stale i zwykle oznaczają ręczne przeglądanie wszystkiego od nowa. Masz już gotowe klocki: obmiar DWG, `.ath` z cenami i komparator. Wystarczy je połączyć w diff ilości razy cena, a wynik od razu przekłada się na aneksy i roszczenia.
+
+Celowo **nie** zaczynałbym od liczenia symboli na rysunkach PDF ani od sterowania AutoCAD przez MCP. Pierwsze jest dziś niewiarygodne (AECV-Bench), drugie w przedmiarze daje mniej niż skrypt na DXF, który już masz.
+
+---
+
+## Źródła
+
+**Dokumentacja Anthropic / Claude Code**
+- Claude Code — przegląd: https://code.claude.com/docs/en/overview
+- Skills: https://code.claude.com/docs/en/skills
+- Hooks: https://code.claude.com/docs/en/hooks
+- MCP: https://code.claude.com/docs/en/mcp · Sub-agents: https://code.claude.com/docs/en/sub-agents · Agent SDK: https://code.claude.com/docs/en/agent-sdk/overview · Routines: https://code.claude.com/docs/en/routines
+- Agent Skills (API): https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview
+- Repozytorium skilli: https://github.com/anthropics/skills
+
+**CAD / DWG / DXF**
+- ezdxf: https://ezdxf.readthedocs.io/ · jednostki: https://ezdxf.readthedocs.io/en/stable/concepts/units.html · bloki: https://ezdxf.readthedocs.io/en/stable/concepts/blocks.html
+- LibreDWG: https://www.gnu.org/software/libredwg/manual/LibreDWG.html · dwg2dxf: https://manpages.opensuse.org/Tumbleweed/libredwg-tools/dwg2dxf.1.en.html
+- ODA File Converter: https://www.opendesign.com/guestfiles/oda_file_converter
+- puran-water/autocad-mcp: https://github.com/puran-water/autocad-mcp
+- Codemod3/CAD-MCP: https://github.com/Codemod3/CAD-MCP
+- Autodesk MCP servers: https://www.autodesk.com/solutions/autodesk-mcp-servers
+- Przegląd MCP dla CAD (Snyk): https://snyk.io/articles/9-mcp-servers-for-computer-aided-drafting-cad-with-ai/
+- Cadalyst o MCP w AEC: https://blog.cadalyst.com/architecture-infrastructure-construction-solutions/mcp-a-new-standard-for-connecting-ai-to-aec-software
+- Core Console — ograniczenia (CADTutor): https://www.cadtutor.net/forum/topic/70601-core-console-lisp-data-extraction
+- Forum Bricsys (Claude i LISP BricsCAD): https://forum.bricsys.com/discussion/comment/58441/
+
+**PDF / rysunki / wizja**
+- PyMuPDF — grafika wektorowa: https://pymupdf.readthedocs.io/en/latest/recipes-drawing-and-graphics.html
+- OpenTakeoff: https://github.com/Kentucky-ai/opentakeoff
+- AECV-Bench: https://arxiv.org/abs/2601.04819 · https://github.com/AECFoundry/AECV-Bench
+- YOLOplan: https://github.com/DynMEP/YOLOplan · PID_Symbol_Detection: https://github.com/mgupta70/PID_Symbol_Detection
+- construction-drawing-analyzer: https://github.com/hamzaabduljabbar/construction-drawing-analyzer
+- Docling vs MarkItDown: https://www.file2markdown.ai/blog/docling-vs-markitdown
+- diff-pdf-visually: https://github.com/bgeron/diff-pdf-visually
+
+**Excel**
+- excel-mcp-server: https://github.com/haris-musa/excel-mcp-server
+- mcp-server-excel (COM): https://github.com/sbroenne/mcp-server-excel
+- mcp-server-xlwings: https://claudemarketplaces.com/mcp/geniuskey/mcp-server-xlwings
+- Microsoft Graph — Excel: https://learn.microsoft.com/en-us/graph/excel-update-range-format
+- Claude for Excel (źródła wtórne): https://pasqualepillitteri.it/en/news/2143/claude-microsoft-365-outlook-beta · https://the-decoder.com/anthropic-activates-claudes-excel-integration-for-all-pro-subscribers
+
+**Kosztorysowanie (PL)**
+- Norma STANDARD — wymiana przez format ATH: https://izbudujemy.pl/produkty/22964/Program-Norma-STANDARD/pdf
+- ATHProject (ATH2 XML): https://www.instalki.pl/download/programy/windows/firma/programy-branzowe/athproject/
+- Comarch ERP XL — import z Norma Pro: https://pomoc.comarch.pl/xl/?p=15453
+
+**Obliczenia**
+- fluids: https://fluids.readthedocs.io/ · CoolProp: https://github.com/CoolProp/CoolProp · hvac_pressure: https://pypi.org/project/hvac-pressure/
+- IfcOpenShell: https://github.com/IfcOpenShell/IfcOpenShell
+
+**Twoje skille (stan wiedzy praktycznej):** `kosztorys-sanitarny`, `obmiar-z-dwg`, `kosztorys-norma-ath`, `analiza-dokumentacji-is`, `komparator-ofert-is`, `kontrola-przed-wysylka`.
+
+*Uwagi metodologiczne: części stron (arxiv.org, autodesk.com) nie dało się pobrać bezpośrednio z powodu błędu DNS w środowisku — dane z nich pochodzą ze streszczeń wyszukiwarki i oznaczyłem je jako takie tam, gdzie mają znaczenie (np. liczby z AECV-Bench). Daty ostatnich commitów większości repozytoriów nie były widoczne na pobranych stronach.*
