@@ -185,3 +185,140 @@ Gotowe narzędzie najbliższe temu pipeline’owi: **[OpenTakeoff](https://githu
 | Przedmiar w Excelu | openpyxl, kolumny: pozycja, jm, ilość, źródło, pewność, uwagi | tak | 🟢 | — |
 
 **Wniosek praktyczny:** dla wentylacji z PDF realne jest **zestawienie kanałów wg wymiarów i liczników urządzeń z etykiet** (szybko i dokładnie), oraz **półautomatyczne długości** z kontrolą wizualną. Kształtki i klapy wymagają człowieka lub DWG. Jeśli istnieje DWG — zawsze wybieraj DWG.
+
+---
+
+## 4. Automatyczne przedmiarowanie z DWG/DXF
+
+### 4.1 Narzędzia — przegląd i ocena
+
+| Narzędzie | Co robi | Platforma | Integracja z Claude Code | Status |
+|---|---|---|---|---|
+| **[ezdxf](https://ezdxf.readthedocs.io/)** (MIT, [GitHub](https://github.com/mozman/ezdxf)) | odczyt/zapis DXF: warstwy, encje, bloki, atrybuty (ATTRIB), xref (`block.is_xref`, `dxf.xref_path`), `ezdxf.bbox`; stabilna 1.4.3 (X 2025), dokumentacja 1.4.4 (V 2026) | każda | skrypty Python uruchamiane przez Claude | 🟢 |
+| **[LibreDWG](https://www.gnu.org/software/libredwg/)** (`dwg2dxf`, [GitHub](https://github.com/LibreDWG/libredwg)) | DWG→DXF, odczyt r1.2–r2018 (~99% wg [manuala](https://www.gnu.org/software/libredwg/manual/html_node/Overview.html)); zapis DWG ≥2004 niedokończony | Linux/Win | CLI | 🟢 (Twoja uwaga: wydanie 0.13.3 nie czytało R2018 — budować z mastera) |
+| **[ODA File Converter](https://www.opendesign.com/guestfiles/oda_file_converter)** | DWG↔DXF, wsadowo z CLI (katalog źródłowy, docelowy, wersja, rekurencja, audyt); Linux DEB/RPM/AppImage | Win/Linux/Mac | CLI; ezdxf ma dodatek `odafc` (do sprawdzenia w dokumentacji) | 🟢 |
+| **AutoCAD + AutoLISP / COM** | pełny dostęp do obiektów, także AutoCAD MEP; COM tylko Windows | Windows | przez MCP (poniżej) lub skrypty `.scr`/LISP generowane przez Claude | 🟢 technologia / 🟡 integracja |
+| **AutoCAD Core Console** (`accoreconsole.exe`) | AutoCAD bez GUI do skryptów wsadowych; tylko komendy bez okien dialogowych i „czysty” LISP ([CADTutor](https://www.cadtutor.net/forum/topic/70601-core-console-lisp-data-extraction)) | Windows | Claude generuje `.scr`/`.lsp`, uruchamia wsadowo | 🟡 |
+| **BricsCAD** | LISP kompatybilny z AutoCAD, BRX, Python (pyrx); użytkownicy forum Bricsys zauważają, że Claude nie zna funkcji LISP specyficznych dla BricsCAD ([forum](https://forum.bricsys.com/discussion/comment/58441/)) | Win/Linux/Mac | jak AutoCAD + MCP społecznościowe | 🟡 |
+| **Autodesk Platform Services (APS)** | Model Derivative / Automation API (AutoCAD w chmurze); oficjalne MCP Autodesk: Revit, Model Data Explorer, Fusion Data — **brak AutoCAD MCP** ([Autodesk MCP](https://www.autodesk.com/solutions/autodesk-mcp-servers)) | chmura | REST, samodzielny hosting przykładowych serwerów APS | 🟡 (koszt i złożoność nieadekwatne do jednoosobowej pracy) |
+| **IfcOpenShell** (+ `ifcmcp`) | jeśli dostajesz model IFC z Revita: rury/kanały jako obiekty z typami i wymiarami | każda | biblioteka Python; MCP `ifcmcp` (`claude mcp add --transport stdio ifc -- ifcmcp`, wg [README w lustrze repo](https://dev.glassvision.dedyn.io/Glassvision/IfcOpenShell/src/branch/AI_effort_estimate/src/ifcmcp)) | 🟡 |
+
+### 4.2 Serwery MCP do CAD (stan wg GitHub i katalogów MCP)
+
+| Projekt | Mechanizm | Możliwości istotne dla przedmiaru | Dojrzałość |
+|---|---|---|---|
+| [puran-water/autocad-mcp](https://github.com/puran-water/autocad-mcp) | AutoCAD LT 2024+ (Windows) przez dyspozytor LISP (`mcp_dispatch.lsp`, APPLOAD) + zapasowo ezdxf (headless) | lista/liczenie encji, warstwy, bloki z atrybutami; **brak operacji pomiaru długości** | 557★, 90 forków, v3.1 — najbardziej dojrzały 🟡 |
+| [Porta048/AutoCad-MCP](https://glama.ai/mcp/servers/@Porta048/AutoCad-MCP) | COM (Windows), także GstarCAD/ZWCAD | głównie rysowanie (linie, teksty, wymiary) | społecznościowy, MIT 🟡 |
+| multiCAD-mcp (AnCode666) | COM: AutoCAD, BricsCAD, ZWCAD, GstarCAD | sterowanie CAD | ~112★ wg katalogu ([glama](https://glama.ai/mcp/servers/i0oofrijce)) 🟡 |
+| lambdacad-mcp (Psalmustrack) | AutoLISP przez most plikowy, BricsCAD na Linux | ~105 narzędzi rysunkowych | 1★ — eksperyment 🔴 |
+| [Codemod3/CAD-MCP](https://github.com/Codemod3/CAD-MCP) | ezdxf + ODA | `dxf_summary`, `dxf_list_layers`, encje po typie/warstwie, teksty, wymiary, bloki | 1★, 4 commity — eksperyment 🔴 |
+
+**Wniosek:** MCP do AutoCAD przydaje się do **pracy interaktywnej** (np. „podświetl na rysunku wszystkie klapy, które policzyłeś”, „wstaw chmurki rewizyjne”). Do **samego przedmiaru** prostszy i pewniejszy jest skrypt ezdxf na DXF — dokładnie to, co już robisz. Żaden z przeglądanych MCP nie ma wbudowanego pomiaru długości instalacji.
+
+### 4.3 Wymagania 1–10 — co działa
+
+| # | Wymaganie | Jak | Status |
+|---|---|---|---|
+| 1 | Odczyt DWG | LibreDWG/ODA → DXF → ezdxf; lub AutoCAD COM | 🟢 |
+| 2 | Rozpoznanie warstw instalacyjnych | lista warstw + długości + liczba encji → Claude proponuje mapowanie warstwa→instalacja, Ty zatwierdzasz; wykluczenie xref | 🟢 (z akceptacją) |
+| 3 | Bloki i atrybuty | `INSERT` + `ATTRIB` (ezdxf) | 🟢 |
+| 4 | Długości przewodów | suma LINE/LWPOLYLINE/ARC (+ POLYLINE, SPLINE przybliżone) po warstwie | 🟢 dla tras rysowanych osią |
+| 5 | Średnice i wymiary | etykiety (TEXT/MTEXT/atrybuty) → najbliższy odcinek; lepiej: grubość/kolor/warstwa per DN, jeśli projektant tak rysuje | 🟡 |
+| 6 | Zliczanie elementów | bloki wg nazwy; etykiety z deduplikacją | 🟢 |
+| 7 | Powtarzające się urządzenia | grupowanie bloków po nazwie + atrybutach (np. typ grzejnika z nazwy bloku) | 🟢 |
+| 8 | Zestawienia materiałowe | agregacja → XLSX z kolumną źródła (warstwa, handle) | 🟢 |
+| 9 | Eksport do Excela | openpyxl/pandas | 🟢 |
+| 10 | Porównanie rewizji | diff ilości per warstwa/blok/DN; bez gotowego narzędzia open source | 🟡 |
+
+### 4.4 Pułapki DWG (z praktyki i dokumentacji)
+
+| Pułapka | Objaw | Zabezpieczenie |
+|---|---|---|
+| **Jednostki** | ezdxf **ignoruje `$INSUNITS`** w obliczeniach ([ezdxf: units](https://ezdxf.readthedocs.io/en/stable/concepts/units.html)) → 1000× za dużo/za mało | sprawdź `$INSUNITS` i sensowność (np. długość pomieszczenia znanej szerokości) |
+| **Bloki w innej jednostce / skali** | elementy w blokach przeskalowane | uwzględnij skalę INSERT; wg dokumentacji ezdxf skalę między jednostkami bloków trzeba stosować jawnie |
+| **XREF** | podkład architektury dołączony jako xref lub „zbindowany” → fałszywe metry na warstwach typu `xref_...` | filtr warstw po prefiksie, `is_xref`; lista warstw do akceptacji |
+| **Obiekty AutoCAD MEP / proxy** | kanały/rury z AutoCAD MEP lub eksportu z Revita mogą być obiektami niestandardowymi (proxy), niewidocznymi jako zwykła geometria | poproś projektanta o „Eksport do AutoCAD” (spłaszczenie) lub IFC; *wiedza ogólna, do sprawdzenia na Twoich plikach* 🟡 |
+| **Piony i odcinki pionowe** | na rzucie pion = punkt/kółko, długość 0 | długości pionów ze schematów/rozwinięć lub z wysokości kondygnacji × liczba pionów |
+| **Podwójne liczenie** | ta sama trasa na rzucie i na rzucie fragmentu/detalu w modelu | wyklucz ramki/obszary detali (bbox), licz tylko w obszarze rzutów |
+| **Wielkość plików** | DWG 70 MB → DXF 450 MB (Twoja obserwacja) | parsowanie strumieniowe (Twój parser) zamiast ładowania całości |
+
+---
+
+## 5. Kosztorysowanie i Excel
+
+### 5.1 Agent kosztorysowy — funkcje i realność
+
+| Funkcja | Realizacja | Status |
+|---|---|---|
+| Analiza przedmiaru, rozpoznanie pozycji | pandas + słownik nazw/KNR + model do niejednoznacznych | 🟢 |
+| Przypisanie jednostek, wykrywanie błędnych jm | słownik reguł (pkt 3) | 🟢 |
+| Porządkowanie struktury | szablon działów firmy | 🟢 |
+| Wykrywanie brakujących pozycji | checklista per instalacja (pkt 4) | 🟢 |
+| Porównanie ilości z dokumentacją | rejestr faktów z cytatami (§6) | 🟢/🟡 (zależnie od źródła ilości) |
+| Zestawienie materiałów | agregacja z przedmiaru + rozwinięcie RMS z `.ath` | 🟢 |
+| Zapytania ofertowe | DOCX + XLSX do wypełnienia | 🟢 |
+| Porównanie cen podwykonawców | `komparator-ofert-is` | 🟢 |
+| Kosztorys ofertowy w Excelu | openpyxl z formułami | 🟢 |
+| Raport ryzyk | reguły + Twoja ocena | 🟢 (jako sygnalizacja) |
+
+### 5.2 Integracje
+
+| Technologia | Do czego | Ograniczenia | Status |
+|---|---|---|---|
+| **openpyxl** | tworzenie/edycja XLSX z formatowaniem i formułami | nie przelicza formuł; nie obsługuje `.xls` (użyj pandas+xlrd lub konwersji LibreOffice) | 🟢 |
+| **pandas** | analiza, łączenie arkuszy, porównania | utrata formatowania przy zapisie | 🟢 |
+| **xlwings** / [mcp-server-xlwings](https://claudemarketplaces.com/mcp/geniuskey/mcp-server-xlwings) | sterowanie otwartym Excelem (COM), makra VBA, pliki zablokowane | tylko Windows z Excelem; Claude Code musi działać natywnie na Windows, nie w WSL | 🟡 |
+| **[sbroenne/mcp-server-excel](https://github.com/sbroenne/mcp-server-excel)** | Excel przez COM: Power Query (M), DAX, VBA, tabele przestawne, wykresy | Windows, Excel 2016+, MIT; liczba narzędzi różni się między wersjami | 🟡 |
+| **[haris-musa/excel-mcp-server](https://github.com/haris-musa/excel-mcp-server)** | XLSX bez Excela (openpyxl): formuły, wykresy, walidacja; `claude mcp add excel-mcp-server -- uvx excel-mcp-server` | to samo co openpyxl — w Claude Code wystarczy skrypt, MCP nie jest konieczny | 🟢 |
+| **Power Query** | odświeżalne zapytania łączące przedmiar z cennikami | tworzenie M przez COM (MCP powyżej) lub ręcznie wg kodu od Claude | 🟡 |
+| **Microsoft Graph** | edycja skoroszytów w OneDrive/SharePoint przez REST (`/workbook/worksheets/{ws}/range(address='A1')`) ([MS Learn](https://learn.microsoft.com/en-us/graph/excel-update-range-format)) | rejestracja aplikacji w Entra ID, uprawnienia firmowe | 🟡 (ma sens tylko w pracy zespołowej) |
+| **Claude for Excel** | interaktywna praca w arkuszu | osobny produkt, nie pipeline | 🟢 (wg źródeł wtórnych, GA V 2026) |
+
+### 5.3 Norma, ATH, XML — co wiadomo
+
+| Pytanie | Ustalenie | Status |
+|---|---|---|
+| Czy jest publiczna specyfikacja `.ath`? | **Nie znalazłem.** Źródła mówią jedynie, że Norma wymienia kosztorysy „uniwersalnym formatem ATH” ([izbudujemy.pl](https://izbudujemy.pl/produkty/22964/Program-Norma-STANDARD/pdf)) | 🔴 publicznie |
+| Czy `.ath` da się generować? | **Tak — Twój skill `kosztorys-norma-ath`** (tekst CP1250, CRLF, pola TAB, sekcje `[KOSZTORYS ATHENASOFT]`, `[RMS ZEST n]`, `[ELEMENT n]`, `[POZYCJA]`, `[OBMIAR NEX]`, `[PRZEDMIAR]`, `[RMS n]`, `[SUMA KONTROLNA]` = 32 zera; import do Kobry działa) | 🟢 (Twoja praktyka) |
+| ATH2 / XML | istnieje format **ATH2 (*.xml)** — importuje go np. ATHProject do MS Project ([instalki.pl](https://www.instalki.pl/download/programy/windows/firma/programy-branzowe/athproject/)); Comarch ERP XL importuje XML z Normy PRO (rozdziały, pozycje, nakłady RMS) ([Comarch](https://pomoc.comarch.pl/xl/?p=15453)) | 🟡 — struktury nie potwierdziłem |
+| Import przedmiaru z Excela do Normy PRO/EXPERT | **nie znalazłem publicznej dokumentacji** tej funkcji; Norma EXPERT ma przeglądarkę BIM/IFC | 🔴 niepotwierdzone — sprawdź w pomocy programu lub u Athenasoft |
+| CSV = kosztorys? | **Nie.** CSV przenosi listę pozycji i ilości; nie przenosi nakładów RMS, cen jednostkowych zasobów, narzutów, KNR z kolumnami ani struktury elementów | 🟢 (wniosek) |
+
+**Rekomendacja:** zostań przy generowaniu `.ath` z pliku-wzorca (dawcy nakładów), bo masz to sprawdzone. Dodaj **test regresyjny**: po każdej zmianie generatora skrypt porównuje sumy i liczbę pozycji z poprzednim plikiem, a hook `PostToolUse` uruchamia `verify()` po każdym zapisie `.ath` (patrz §10).
+
+---
+
+## 6. Agent analizy dokumentacji z systemem cytowania
+
+### 6.1 Zasada: najpierw rejestr faktów, potem wnioski
+
+Każda liczba w raporcie musi pochodzić z **rejestru faktów** (`facts.jsonl`), w którym każdy wpis ma źródło. Model nie może wpisać ilości, której nie ma w rejestrze.
+
+```json
+{"id":"F-0142","element":"wentylator dachowy","atrybut":"liczba","wartosc":12,
+ "plik":"02_Opis_techniczny_W.docx","strona":7,"rozdzial":"4.3",
+ "cytat":"Projektuje się 12 wentylatorów dachowych typu ...",
+ "metoda":"tekst","pewnosc":"wysoka"}
+{"id":"F-0143","element":"wentylator dachowy","atrybut":"liczba","wartosc":10,
+ "plik":"W-03_Rzut_dachu.pdf","strona":1,"rysunek":"W-03 rev.B",
+ "bbox":[812,420,1630,1180],"metoda":"etykiety WD-1..WD-10 (regex + deduplikacja)","pewnosc":"średnia"}
+{"id":"F-0144","element":"wentylator dachowy","atrybut":"liczba","wartosc":8,
+ "plik":"Przedmiar_W.xlsx","arkusz":"Wentylacja","wiersz":57,"metoda":"komórka","pewnosc":"wysoka"}
+```
+
+### 6.2 Wynik — wiersz raportu rozbieżności
+
+| ID | Element | Opis tech. | Rzut | Przedmiar | Rozbieżność | Źródła | Wpływ kosztowy | Pytanie |
+|---|---|---|---|---|---|---|---|---|
+| R-07 | Wentylator dachowy | 12 szt. | 10 szt. | 8 szt. | opis ≠ rzut ≠ przedmiar | F-0142 (Opis s.7, rozdz. 4.3), F-0143 (W-03 rev.B, s.1, obszar 812/420), F-0144 (Przedmiar_W.xlsx, Wentylacja!57) | 2–4 szt. × cena jedn. | „Proszę o potwierdzenie liczby wentylatorów dachowych: opis 12 szt., rzut W-03 10 szt. Które obowiązuje?” |
+
+### 6.3 Jak to zbudować
+
+1. **Ekstrakcja per typ pliku** (skrypty, nie model): DOCX → akapity z numerem rozdziału; PDF → słowa ze współrzędnymi i numerem strony; XLSX → komórki z adresem; DXF → encje z warstwą/handle.
+2. **Normalizacja nazw** (model + słownik): „wentylator dachowy”, „WD”, „went. dach.” → jeden klucz.
+3. **Porównanie** (skrypt): grupowanie faktów po (element, atrybut), wykrycie różnic wartości.
+4. **Raport** (model): opis rozbieżności, pytanie, wpływ kosztowy — **tylko na bazie ID faktów**.
+5. **Kontrola cytowań** (skrypt): każdy `cytat` musi występować dosłownie w tekście wskazanej strony; inaczej fakt odrzucony. To eliminuje „halucynowane cytaty”.
+6. **Nakładka PDF** (PyMuPDF): ramki wokół `bbox` z numerem faktu → szybka kontrola wizualna.
+
+Detekcja klas rozbieżności (rozszerzenie Twojego `analiza-dokumentacji-is`): liczności urządzeń; typy/modele (zestawienie vs opis); parametry (wydajność, spręż, moc); średnice (schemat vs rzut); materiały (opis vs STWiOR); granice zakresu („poza zakresem” w opisie vs pozycja w przedmiarze); pozycje bez ilości; elementy na rysunku bez pozycji w przedmiarze.
